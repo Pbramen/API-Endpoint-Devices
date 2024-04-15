@@ -33,16 +33,6 @@
 		return $r;
 	}
 
-	/** driver function for data type validation
-		* params $c (value to be checked)
-		* params $type (expected data type of $c)
-		* params $value (variable name (for logging purposes))
-			* returns array ['msg'] = 'error message' or 'ok' upon success
-	*/ 
-	function checkDataType($c, $type, $value){
-		return gettype($c) == $type;
-	}
-
 	
 	/** Queries database if sn already exists. Uses prepared statements for sql injection
 	*   	params $dblink (mysqli object) Current connection
@@ -120,24 +110,6 @@
 			throw new Exception("Unable to execute prepared statement for sn create. $res->error");
 		}
 	}
-
-	/**
-	* No Need to use prepared statmenets since this is hardcoded.
-	* Returns the total number of records in relation. 
-	* throws exception if query fails.
-	*/
-	function countMaxRecords($db){
-		$res = $db->query("SELECT COUNT('device_id') from `relation`");
-		if(!$res){
-			throw new Exception("Unable to query count. $db->error");
-		}
-		$row = $res->fetch_row();
-		if(!$row && $db->errno != 0){
-			throw new Exception("Unable to fetch results. $db->error");
-		}
-		return $row[0];
-	}
-	
 
 	/**
 	* Function to set up prepare statement using all selected filters.

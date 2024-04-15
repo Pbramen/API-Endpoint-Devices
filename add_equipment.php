@@ -1,34 +1,36 @@
 <?php
 	// handle errors and exit if missing
 	if($d == null){
-		log_API_error($logger, 0, "Device Missing", $url, "POST", "None");
+
 		handleMissingField("device");	
 	
 	}
 	if($c == null){
-		log_API_error($logger, 0, "Company Missing", $url, "POST", "None");
+
 		handleMissingField("company");
 	}
 	if($sn == null){
-		log_API_error($logger, 0, "SN Missing", $url, "POST", "None");
+
 		handleMissingField("sn");
 	}
 	
 	// we now need to validate
 	if(!is_numeric($d)){
 		// log error here
-		log_API_error($logger, 0, "Device invalid data type", $url, "POST", "None");
+
 		return handleInvalidType("device", "int");
 		
 	}
 	if(!is_numeric($c)){
 		// log error here
-		log_API_error($logger, 0, "Company invalid data type", $url, "POST", "None");
+
 		return handleInvalidType("company", "int");
 	}
+	
+	// validate sn 
 	if(!checkSNLen($sn)){
 		// log error here
-		log_API_error($logger, 0, "SN length invalid", $url, "POST", "None");
+
 		return;
 	}
 	
@@ -36,24 +38,75 @@
 		// log warning here
 		$sn = 'SN-'.$sn;
 	}
-
+	
 	if(checkSNString($sn) >= 2){
 		// log error here
-		log_API_error($logger, 0, "SN invalid format", $url, "POST", "None");
+
 		return;
 	}
-
+	// check if sn does not exist 
 	if(checkUnique($sn)){
 		// log error here
-		log_API_error($logger, 0, "Attempted to insert already existing SN.", $url, "POST", "None");
+
 		return;
 	}
 
+	// sanitize input.
 	$d = sanitizeDriver($logger, $d, $url, "add_equipment.php");
 	$c = sanitizeDriver($logger, $c, $url, "add_equipment.php");
 	$sn = sanitizeDriver($logger, $sn, $url, "add_equipment.php");
-	// check if device and company exist
-	// TODO
+
+	// check if device and company exist calling other endpoints.
+	$time_start = microtime(true);
+	$d_json = curl_POST("query_device", "d=$d", $logger, $url);
+	$d_json = json_decode($d_json);
+	
+	if($d_json){
+		if (isset($d_json['MSG']) && $d_json['MSG'] == 'Status: NOT FOUND'){
+			//log error here
+			
+			//send back json with status message. 
+			exit();
+		}
+	}
+	else{
+		// log json error here
+		 log_sys_err($logger, json_last_error(), json_last_error_msg(), $url, "JSON", "Try again");
+		handleJsonError();
+	}
+	
+	$c_json = curl_POST("query_company", "c=$c", $logger, $url);
+
+	$d_json = curl_POST("query_device", "d=$d", $logger, $url);
+	
+	if(isset($c_json["Status"]) && isset($c_json["MSG"])){
+		if($c_json["Status"] == "ERROR"){
+			//handle error here
+			
+			$output[] = "Status: Missing device";
+			$response = json_encode($output);
+			if(!$response) {
+				// log sys error here
+				handleJsonError();
+				exit();
+			}
+			// log api error here
+			echo $output;
+			exit();
+		}
+	}
+
+	if(isset($c_json["Status"]) && $c_json["Status"] == "OK"){
+		
+	}
 
 	// insert here 
+	try{
+		$sql = 'INSERT INTO `relation` (sn_id, device_id, company_id) VALUES (?, ?, ?)';
+		$res = bindAndExecute($db, $sql, 'iii', $sn_id, $d, $c);
+		
+	} catch (MySQLi_Sql_Exception $mse){
+		 log_sys_err($logger, $mse.code, $mse.message, $url, "POST", "Review Pending");
+		// construct JSON here for return code.
+	}
 ?>

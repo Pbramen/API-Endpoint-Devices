@@ -33,7 +33,7 @@
 			$output = handleInvalidEndpoint();
 			$res = json_encode($output);
 			if($res){
-				log_API_error($logger, 0, 'Inavlid endpoint JSON failed', $url, 'POST', 'None.');
+				 log_sys_err($logger, 0, 'Inavlid endpoint JSON failed', $url, 'POST', 'None.');
 				handleJsonError();
 			}
 			echo $res;
