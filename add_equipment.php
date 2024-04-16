@@ -18,13 +18,13 @@
 	if(!is_numeric($d)){
 		// log error here
 
-		return handleInvalidType("device", "int");
+		
 		
 	}
 	if(!is_numeric($c)){
 		// log error here
 
-		return handleInvalidType("company", "int");
+		
 	}
 	
 	// validate sn 
@@ -72,7 +72,7 @@
 	else{
 		// log json error here
 		 log_sys_err($logger, json_last_error(), json_last_error_msg(), $url, "JSON", "Try again");
-		handleJsonError();
+		 echo handleAPIResponse(200, 'Failed to parse json.', '', 'api/query_device');
 	}
 	
 	$c_json = curl_POST("query_company", "c=$c", $logger, $url);

@@ -1,48 +1,19 @@
 <?php
 
-// error handler for invalid endpoint requests
-// does NOT log data 
-function handleInvalidEndpoint(){
+
+// Builds a json response with a payload.
+function handleAPIResponse($status, $msg, $payload, $next = "None Taken"){
 	header('Content-type: application/json');
 	header('HTTP/1.1 200 OK');
-	$output[] = 'Status: ERROR';
-	$output[] = 'MSG: Invalid Endpoint';
-	$output[] = 'Action: None';
-	return $output;
-}
+	$output = [
+		'Status' => $status,
+		'MSG' => $msg,
+		'Payload' => $payload,
+		'Action' => $next
+	];
+	return json_encode($output);
 
-// error handling for json_encode()
-function handleJsonError(){
-	$output[] = 'Status: ERROR';
-	$output[] = 'MSG: ('.json_last_error().'): '.json_last_error_msg();
-	$output[] = 'Action: None';
-	$res = json_encode($output);
-	echo $res;
-	exit();
 }
-
-// handle missing field 
-function handleMissingField($value){
-	header('Content-type: application/json');
-	header('HTTP/1.1 200 OK');
-	$output[] = 'Status: ERROR';
-	$output[] = 'MSG: Missing '.$value;
-	$output[] = 'Action: query_'.$value;
-	$responseData = json_encode($output);
-	echo $responseData;
-	exit();
-}
-
-function handleInvalidType($value, $expected){
-	header('Content-type: application/json');
-	header('HTTP/1.1 200 OK');
-	$output[] = 'Status: ERROR';
-	$output[] = 'MSG: Invalid type. Expected '.$expected.' for '. $value;
-	$output[] = 'Action: query_'.$value;
-	$responseData = json_encode($output);
-	return $responseData;
-}
-
 // uri should be santizied and validated before inserting. 
 // must be wrapped in a try/catch block for mysqli_sql_exception.
 function log_sys_err($logger, $err_code, $err_msg, $uri, $type, $action){
@@ -103,6 +74,29 @@ function check_Unique($endpoint, $field, $logger, $url){
 		//log_API_error($logger, json_last_error(), json_last_error_msg(), $url, "JSON", "Try again");
 		handleJsonError();
 	}
-	
+}
+
+/*
+	Handle output from curl to query endpoints. 
+	@param {Object} - JSON response from curl
+	@param {String} - attribute that was queried.
+*/
+function handleQueryEndpoint($json, $type){
+		if(isset($json["Status"]) && isset($json["MSG"])){
+		if($json["Status"] == "ERROR"){
+			//handle error here
+			$output[] = "Status: Missing $type";
+			$response = json_encode($output);
+			if(!$response) {
+				// log sys error here
+				handleJsonError();
+				exit();
+			}
+			// log api error here
+			echo $output;
+			exit();
+		}
+	}
+}
 
 ?>
