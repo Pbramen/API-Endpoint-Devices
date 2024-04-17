@@ -4,8 +4,9 @@
 	include("./assets/php/apiHelper.php");
 
 	$url = sanitizeDriver($logger, $_SERVER['REQUEST_URI'], "response URI", "api.php");
+	// error log for when mysqli connection fails.
 	$error_log = '/home/ubuntu/log/mysql_error.txt';
-
+	
 	// get endpoint from the url
 	$path = parse_url($url, PHP_URL_PATH);
 	$pathComponents = explode("/", trim($path, "/"));
@@ -14,7 +15,8 @@
 	else{
 		$endPoint = "";
 	}
-
+	
+	$time_start= microtime(true);
 	switch($endPoint){
 		case "add_equipment":
 			$d = $_REQUEST['d'];
@@ -27,10 +29,8 @@
 		case "add_manufacturer":
 			break;
 		case "query_device":
-			$d = file_get_contents("php://input");
-			$d = json_decode($d);
-			if(isset($d->{'d'}))
-				$d = $d->{'d'};
+			// check for json/param for POST/GET
+			$d = getField('d');
 			
 			include("query_device.php");
 			break;
@@ -45,8 +45,13 @@
 		case "update_equipment":
 			break;
 		default:
-			handleAPIResponse('OK', 'Invalid endpoint', buildErrorPayload(['endPoint' => $endPoint]), 'api/man');
-
+			$output = handleAPIResponse('OK', 'Invalid endpoint', buildErrorPayload(['endPoint' => $endPoint]), 'api/man', $time_start);
+			handle_logger("log_API_error", $logger, 200, "Invalid EndPoint", 'api/man', $endPoint,  $time_start );
+			header("Content-type: application/json");
+			header('HTTP/1.1 200 OK');
+			// log here
+			echo $output;
+			
 	}	
 
 

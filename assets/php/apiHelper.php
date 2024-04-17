@@ -1,5 +1,20 @@
 <?php
 
+function getField($name){
+	// for json:
+	$res = null;
+	$d = file_get_contents("php://input");
+			$d = json_decode($d);
+			// get from object d
+			if(isset($d->{$name}))
+				$res = $d->{$name};
+			// check if params was set instead
+			else if(isset($_REQUEST[$name])){
+				$res = $_REQUEST[$name];
+			}
+	return $res;
+}
+
 // Builds a payload array
 // $args is an assoc array containing fields and (santitized) values.s
 function buildErrorPayload($args){
@@ -12,9 +27,34 @@ function buildErrorPayload($args){
 	return $payload;
 }
 
-// Builds a json response with a payload.
-function handleAPIResponse($status, $msg, $payload, $next = "None Taken"){
-	header('HTTP/1.1 200 OK');
+function handle_json_encode($url, $endPoint, $start){
+	try{
+		log_sys_err($logger, json_last_error_msg(), $url, "", 'JSON', "None taken", $start);
+	} catch (MySQLi_Sql_Exception $mse){
+		// mysqli error occured -> log to text file.
+		error_log("\r\n$mse\r\n", 3, $error_log);
+	} finally {
+		header('Content-type: text/html; charset=utf-8');
+		echo 'Error Code: ('.json_last_error().'). JSON Encoding failed. Try again later';
+	}
+}
+// callback function to handle all logging functions. 
+function handle_logger($fn, ...$args){
+	try{
+		call_user_func($fn, ...$args);
+	} catch (MySQLi_Sql_Exception $mse){
+		// mysqli error occured -> log to text file.
+		// mysqli connection error occured.
+		$date = date('Y-m-d H:i:s');
+		error_log("\r\n[$date]: $mse\r\n", 3, $error_log);
+	} catch (Exception $e){
+		$date = date('Y-m-d H:i:s');
+		error_log("\r\n[$date]: $e\r\n", 3, $error_log);
+	}
+}
+// Builds a json response with a payload
+function handleAPIResponse($status, $msg, $payload, $url, $start, $next = "None Taken"){
+
 	$output = [
 		'Status' => $status,
 		'MSG' => $msg,
@@ -22,52 +62,45 @@ function handleAPIResponse($status, $msg, $payload, $next = "None Taken"){
 		'Action' => $next
 	];
 	$output =  json_encode($output);
-
-	if($output){
-		header('Content-type: application/json');
-		echo $output;
+	
+	if(!$output){
+		handle_json_encode($url, "Unable to encode JSON.", $url, $start);
+		exit();
 	}
-	else{
-		try {
-			log_sys_err($logger, json_last_error_msg(), $url, 'api.php: Invalid Endpoint', 'JSON', $endPoint );
-		} catch (MySQLi_Sql_Exception $mse){
-			// mysqli error occured -> log to text file.
-			error_log("\r\n$mse\r\n", 3, $error_log);
-		} finally {
-			header('Content-type: text/html; charset=utf-8');
-			echo 'Error Code: ('.json_last_error().'). JSON Encoding failed. Try again later';
-		}
-	}
-
+	// must header and logging elsewhere...
+	return $output;
 }
+
+
 // uri should be santizied and validated before inserting. 
 // must be wrapped in a try/catch block for mysqli_sql_exception.
-function log_sys_err($logger, $msg, $uri, $stack_trace, $type, $action){
+function log_sys_err($logger, $msg, $uri, $stack_trace, $type, $action, $start){
 	$date = date('Y-m-d H:i:s');
-	
-	$sql = 'Insert into `sys_api_error` (action, date, message, uri, stack_trace, type) VALUES ("'.$action.'", "'.$date.'", "'.$msg.'","'.$uri.'", "'.$stack_trace.'",  "'.$type.'")';
+	$exec_time = (microtime(true) - $start) / 60;
+	$sql = 'Insert into `sys_api_error` (action, date, message, uri, stack_trace, type, execution_time) VALUES ("'.$action.'", "'.$date.'", "'.$msg.'","'.$uri.'", "'.$stack_trace.'",  "'.$type.'", "'.$exec_time.'")';
 	$logger->query($sql);
 }
 
 // Logs operation if failed.
-function log_API_error($logger, $status, $msg, $uri, $action){
-	
+function log_API_error($logger, $status, $msg, $action, $url, $start){
 	$method = $_SERVER['REQUEST_METHOD'];
 	if($method == null){
 		$method = 'N/A';
 	}
-	$method = sanitizeDriver($logger, $method, $uri, $uri);
+	$method = sanitizeDriver($logger, $method, "API", $url);
 	
+	$exec_time = (microtime(true) - $start) / 60;
 	$date = date('Y-m-d H:i:s');
-	$sql = 'INSERT INTO `api_error` (status, err_msg, method, uri, action, date)
-	VALUES ("'.$status.'", "'.$msg.'", "'.$method.'", "'.$uri.'", "'.$action.'", "'.$date.'", "'.$line.'")';
+	$sql = 'INSERT INTO `api_error` (status, err_msg, method, uri, action, date, execution_time)
+	VALUES ("'.$status.'", "'.$msg.'", "'.$method.'", "'.$url.'", "'.$action.'", "'.$date.'", "'.$exec_time.'")';
 	$logger->query($sql);
 }
 
 // same as log_api_error, but for successful api calls.
-function log_API_op($logger, $method, $url, $status, $msg){
+function log_API_op($logger, $method, $url, $status, $msg, $start){
+	$exec_time = (microtime(true) - $start) / 60;
 	$date = date('Y-m-d H:i:s');
-	$sql = 'INSERT INTO `api_req` (method, url, date, status, msg) VALUES ("'.$method.'", "'.$url.'", "'.$date.'", "'.$status.'", "'.$msg.'")';
+	$sql = 'INSERT INTO `api_req` (method, url, date, status, msg, execution_time) VALUES ("'.$method.'", "'.$url.'", "'.$date.'", "'.$status.'", "'.$msg.'", "'.$exec_time.'")';
 	$logger->query($sql);
 }
 
