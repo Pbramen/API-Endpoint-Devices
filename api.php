@@ -4,6 +4,7 @@
 	include("./assets/php/apiHelper.php");
 
 	$url = sanitizeDriver($logger, $_SERVER['REQUEST_URI'], "response URI", "api.php");
+	$error_log = '/home/ubuntu/log/mysql_error.txt';
 
 	// get endpoint from the url
 	$path = parse_url($url, PHP_URL_PATH);
@@ -44,15 +45,8 @@
 		case "update_equipment":
 			break;
 		default:
-			
-			$output = handleInvalidEndpoint();
-			$res = json_encode($output);
-			if(!$res){
-				log_sys_err($logger, 0, 'Inavlid endpoint JSON failed', $url, 'POST', 'None.');
-				handleJsonError();
-			}
-			echo $res;
-			break;
+			handleAPIResponse('OK', 'Invalid endpoint', buildErrorPayload(['endPoint' => $endPoint]), 'api/man');
+
 	}	
 
 

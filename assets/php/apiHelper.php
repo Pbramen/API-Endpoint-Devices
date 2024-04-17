@@ -1,9 +1,19 @@
 <?php
 
+// Builds a payload array
+// $args is an assoc array containing fields and (santitized) values.s
+function buildErrorPayload($args){
+	$payload = [
+		'Fields' => array()
+	];
+	foreach($args as $key => $value){
+		$payload['Fields'][$key] = $value;
+	}
+	return $payload;
+}
 
 // Builds a json response with a payload.
 function handleAPIResponse($status, $msg, $payload, $next = "None Taken"){
-	header('Content-type: application/json');
 	header('HTTP/1.1 200 OK');
 	$output = [
 		'Status' => $status,
@@ -11,22 +21,47 @@ function handleAPIResponse($status, $msg, $payload, $next = "None Taken"){
 		'Payload' => $payload,
 		'Action' => $next
 	];
-	return json_encode($output);
+	$output =  json_encode($output);
+
+	if($output){
+		header('Content-type: application/json');
+		echo $output;
+	}
+	else{
+		try {
+			log_sys_err($logger, json_last_error_msg(), $url, 'api.php: Invalid Endpoint', 'JSON', $endPoint );
+		} catch (MySQLi_Sql_Exception $mse){
+			// mysqli error occured -> log to text file.
+			error_log("\r\n$mse\r\n", 3, $error_log);
+		} finally {
+			header('Content-type: text/html; charset=utf-8');
+			echo 'Error Code: ('.json_last_error().'). JSON Encoding failed. Try again later';
+		}
+	}
 
 }
 // uri should be santizied and validated before inserting. 
 // must be wrapped in a try/catch block for mysqli_sql_exception.
-function log_sys_err($logger, $err_code, $err_msg, $uri, $type, $action){
+function log_sys_err($logger, $msg, $uri, $stack_trace, $type, $action){
 	$date = date('Y-m-d H:i:s');
-	$sql = 'Insert into `sys_api_error` (err_code, err_msg, uri, type, action, date) VALUES ("'.$err_code.'", "'.$err_msg.'", "'.$uri.'", "'.$type.'", "'.$action.'", "'.$date.'")';
+	
+	$sql = 'Insert into `sys_api_error` (action, date, message, uri, stack_trace, type) VALUES ("'.$action.'", "'.$date.'", "'.$msg.'","'.$uri.'", "'.$stack_trace.'",  "'.$type.'")';
 	$logger->query($sql);
 }
 
 // Logs operation if failed.
-function log_API_error($status, $msg, $metehod, $uri, $action, $protocol){
+function log_API_error($logger, $status, $msg, $uri, $action){
+	
+	$method = $_SERVER['REQUEST_METHOD'];
+	if($method == null){
+		$method = 'N/A';
+	}
+	$method = sanitizeDriver($logger, $method, $uri, $uri);
+	
 	$date = date('Y-m-d H:i:s');
-	$sql = 'INSERT INTO `api_error` (status, err_msg, method, uri, action, date, protocol)
-	VALUES ("'.$status.'", "'.$msg.'", "'.$method.'", "'.$uri.'", "'.$action.'", "'.$date.'", "'.$protocol.'")';
+	$sql = 'INSERT INTO `api_error` (status, err_msg, method, uri, action, date)
+	VALUES ("'.$status.'", "'.$msg.'", "'.$method.'", "'.$uri.'", "'.$action.'", "'.$date.'", "'.$line.'")';
+	$logger->query($sql);
 }
 
 // same as log_api_error, but for successful api calls.
@@ -56,6 +91,9 @@ function curl_POST($endpoint, $data, $logger, $url){
 	curl_close($ch);
 	echo $result;
 }
+
+// TODO curl_JSON 
+
 
 // calls the endpoint to query if record exists. 
 function check_Unique($endpoint, $field, $logger, $url){

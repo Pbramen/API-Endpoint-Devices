@@ -72,7 +72,7 @@
 	else{
 		// log json error here
 		 log_sys_err($logger, json_last_error(), json_last_error_msg(), $url, "JSON", "Try again");
-		 echo handleAPIResponse(200, 'Failed to parse json.', '', 'api/query_device');
+		 echo handleAPIResponse(400, 'Failed to parse json.', '', 'api/query_device');
 	}
 	
 	$c_json = curl_POST("query_company", "c=$c", $logger, $url);
@@ -87,7 +87,7 @@
 			$response = json_encode($output);
 			if(!$response) {
 				// log sys error here
-				handleJsonError();
+				echo handleAPIResponse(400, 'Failed to parse json', '', 'api/query_device');
 				exit();
 			}
 			// log api error here
