@@ -1,5 +1,7 @@
 <?php
 
+
+
 function getField($name){
 	// for json:
 	$res = null;
@@ -28,6 +30,7 @@ function buildErrorPayload($args){
 }
 
 function handle_json_encode($url, $endPoint, $start){
+	$error_log = '/var/www/html/api/logs/mysqli_error.txt';
 	try{
 		log_sys_err($logger, json_last_error_msg(), $url, "", 'JSON', "None taken", $start);
 	} catch (MySQLi_Sql_Exception $mse){
@@ -40,6 +43,7 @@ function handle_json_encode($url, $endPoint, $start){
 }
 // callback function to handle all logging functions. 
 function handle_logger($fn, ...$args){
+	$error_log = '/var/www/html/api/logs/mysqli_error.txt';
 	try{
 		call_user_func($fn, ...$args);
 	} catch (MySQLi_Sql_Exception $mse){
@@ -67,8 +71,9 @@ function handleAPIResponse($status, $msg, $payload, $url, $start, $next = "None 
 		handle_json_encode($url, "Unable to encode JSON.", $url, $start);
 		exit();
 	}
-	// must header and logging elsewhere...
-	return $output;
+	header("Content-type: application/json");
+	header('HTTP/1.1 200 OK');
+	echo $output;
 }
 
 
@@ -97,7 +102,13 @@ function log_API_error($logger, $status, $msg, $action, $url, $start){
 }
 
 // same as log_api_error, but for successful api calls.
-function log_API_op($logger, $method, $url, $status, $msg, $start){
+function log_API_op($logger, $url, $status, $msg, $start){
+	$method = $_SERVER['REQUEST_METHOD'];
+	if($method == null){
+		$method = 'N/A';
+	}
+	$method = sanitizeDriver($logger, $method, "API", $url);
+	
 	$exec_time = (microtime(true) - $start) / 60;
 	$date = date('Y-m-d H:i:s');
 	$sql = 'INSERT INTO `api_req` (method, url, date, status, msg, execution_time) VALUES ("'.$method.'", "'.$url.'", "'.$date.'", "'.$status.'", "'.$msg.'", "'.$exec_time.'")';
