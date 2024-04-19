@@ -17,20 +17,38 @@
 		return $err;
 	}
 	
-	// check from csv file if device/company is in correct format. 
-	// adjusts format if possible. 
-	function checkAlpha($string, &$res){
-		$n = strlen($string);
+	function ord_alpha($c){
+		return ($c >= 65 && $c <= 90) || ($c >= 97 && $c <= 122);
+	}
+	
+	// validates and sanitizes result. 
+	function sanitizeAlpha($string, &$res, &$extra){
 		$res = '';
-		$r = false;
+
+		$extra = array();
+		$string = trim($string);
+		$n = strlen($string);
+		
 		for ($i = 0; $i < $n; $i+=1){
-			if((ctype_alpha($string[$i]) || $string[$i] == ' ')){
-				$res .= $string[$i];
+			$ordC = ord($string[$i]);
+			if( ord_alpha($ordC) || $ordC == 32 ){
+				
+				if($ordC == 32){
+					while($i < $n && !ord_alpha($ordC)){
+						$i+=1;
+						$ordC = ord($string[$i]);
+					}
+					if(ord_alpha($ordC)){
+						$res .= ' '.chr($ordC);
+					}
+				}
+				else{
+					$res .= chr($ordC);
+				}
 			}else{
-				$r = true;
+				$extra[$i] = '\''.chr($ordC).'\'';
 			}
 		}
-		return $r;
 	}
 
 	

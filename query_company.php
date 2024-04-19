@@ -1,16 +1,6 @@
 <?php
-if($c == null){
-	//log error here.
-	handle_logger("log_API_error", $logger, 200, "Company is missing", "api/query_company", $endPoint, $time_start);
-	handleAPIResponse(200, "Company is missing.", "", $endPoint, $time_start);
-	exit();
-}
-
-if(!is_numeric($c)){
-	handle_logger("log_API_error", $logger, 200, "Invalid company_id data type.", "api/query_company", $endPoint, $time_start);
-	handleAPIResponse(200, "Company must be digits only.", buildErrorPayload(['c' => $c]), $endPoint, $time_start);
-	exit();
-}
+//validates and sanitizes $c. Exits if invalid.
+validateAPI($logger, $c, "company", $endPoint, $endPoint, $time_start);
 
 // maybe overkill...
 $c = sanitizeDriver($logger, $c, $endPoint, "company");

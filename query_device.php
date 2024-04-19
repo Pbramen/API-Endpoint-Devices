@@ -1,20 +1,7 @@
 <?php
 
-if($d == null){
-	//log error here.
-	handle_logger("log_API_error", $logger, 200, "Device is missing", "api/query_device", $endPoint, $time_start);
-	handleAPIResponse(200, "Device is missing.", "", $endPoint, $time_start);
-	exit();
-}
-
-if(!is_numeric($d)){
-	handle_logger("log_API_error", $logger, 200, "Invalid device_id data type.", "api/query_device", $endPoint, $time_start);
-	handleAPIResponse(200, "Device must be digits only.", buildErrorPayload(['d' => $d]), $endPoint, $time_start);
-	exit();
-}
-
-// maybe overkill...
-$d = sanitizeDriver($logger, $d, $endPoint, "device");
+//validates and sanitizes $d. Exits if invalid.
+validateAPI($logger, $d, "device", $endPoint, $endPoint, $time_start);
 
 $sql = 'SELECT * from device where device_id = (?)';
 

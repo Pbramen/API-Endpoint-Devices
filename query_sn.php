@@ -1,19 +1,7 @@
 <?php
-if($sn == null){
-	//log error here.
-	handle_logger("log_API_error", $logger, 200, "Serial Number is missing", "api/query_sn", $endPoint, $time_start);
-	handleAPIResponse(200, "Serial Number is missing.", "", $endPoint, $time_start);
-	exit();
-}
+//validates and sanitizes $sn.
+validateAPI($logger, $sn, "sn", $endPoint, $endPoint, $time_start);
 
-if(!is_numeric($sn)){
-	handle_logger("log_API_error", $logger, 200, "Invalid sn_id data type.", "api/query_sn", $endPoint, $time_start);
-	handleAPIResponse(200, "Serial Number must be digits only.", buildErrorPayload(['sn' => $sn]), $endPoint, $time_start);
-	exit();
-}
-
-// maybe overkill...
-$sn = sanitizeDriver($logger, $sn, $endPoint, "Serial Number");
 
 $sql = 'SELECT * from sn where sn_id = (?)';
 
