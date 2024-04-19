@@ -8,20 +8,10 @@ function validateAPI($logger, $d, $name, $endPoint, $action, $time_start){
 		handleAPIResponse(200, "$name is missing.", "", $endPoint, $time_start);
 		exit();
 	}
-	// search for sn_id or sn
-	if($d = "sn"){
-		// check for valid sn format here, log if failed
-		if($d){
-			
-		}
-		else if(!is_numeric($d)){
-		
-		}
-		// return 0 for id, 1 for name.
-	}
+
 	if(!is_numeric($d)){
 		handle_logger("log_API_error", $logger, 200, 'Invalid '.$name.'_id data type.', $endPoint, $action, $time_start);
-		handleAPIResponse(200, "$name must be digits only.", buildErrorPayload([ $name[0] => $d]), $endPoint, $time_start);
+		handleAPIResponse(200, "$name must be digits only.", buildPayload([ $name[0] => $d]), $endPoint, $time_start);
 		exit();
 	}
 	// maybe overkill...
@@ -45,7 +35,7 @@ function getField($name){
 
 // Builds a payload array
 // $args is an assoc array containing fields and (santitized) values.s
-function buildErrorPayload($args){
+function buildPayload($args){
 	$payload = [
 		'Fields' => array()
 	];

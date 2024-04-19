@@ -72,7 +72,7 @@
 			include("search_equip");
 			break;
 		default:
-			$output = handleAPIResponse('OK', 'Invalid endpoint', buildErrorPayload(['endPoint' => $endPoint]), 'api/man', $time_start);
+			$output = handleAPIResponse('OK', 'Invalid endpoint', buildPayload(['endPoint' => $endPoint]), 'api/man', $time_start);
 			handle_logger("log_API_error", $logger, 200, "Invalid EndPoint", 'api/man', $endPoint,  $time_start );
 			
 	}	

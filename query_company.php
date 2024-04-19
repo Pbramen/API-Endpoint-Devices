@@ -11,12 +11,12 @@ try{
 	$res = bindAndExecute($db, $sql, 'i', [$c]);
 } catch (Mysqli_SQL_Exception $mse){
 	handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE_ERR', 'None taken.', $time_start );
-	handleAPIResponse(500, 'Unable to query database.', buildErrorPayload(['c' => $c]), $endPoint, $time_start);
+	handleAPIResponse(500, 'Unable to query database.', buildPayload(['c' => $c]), $endPoint, $time_start);
 	exit();
 } catch (Exception $e) {
 	// log error here
 	handle_logger("log_sys_err", $logger, $e->getMessage(), $endPoint, $e->getTraceAsString(), 'MSE_ERR', 'None taken.', $time_start );
-	handleAPIResponse(500, 'Unable to query database.', buildErrorPayload(['c' => $c]), $endPoint, $time_start);
+	handleAPIResponse(500, 'Unable to query database.', buildPayload(['c' => $c]), $endPoint, $time_start);
 	exit();
 }
 
@@ -32,7 +32,7 @@ if ($row && $row['active']){
 	];
 	
 	handle_logger("log_API_op", $logger, $endPoint, '200', "Company $company($c) queried.", $time_start );
-	handleAPIResponse(200, 'Company Found!', buildErrorPayload($payload), $endPoint, $time_start);
+	handleAPIResponse(200, 'Company Found!', buildPayload($payload), $endPoint, $time_start);
 	exit();
 }
 // device is not active, log output and return not found
@@ -47,7 +47,7 @@ else {
 	else{
 		handle_logger("log_API_op", $logger, $endPoint, '200', "Company $c queried, not found.", $time_start );
 	}
-		handleAPIResponse(200, 'Company Not found', buildErrorPayload($payload), $endPoint, $time_start);
+		handleAPIResponse(200, 'Company Not found', buildPayload($payload), $endPoint, $time_start);
 		exit();
 }
 
