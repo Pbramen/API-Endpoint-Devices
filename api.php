@@ -27,11 +27,14 @@
 		case "add_device":
 			$d = getField('d');
 			$active = getField('active');
-			include("add_device.php");
+			$name = 'device';
+			include("add.php");
 			break;
 		case "add_company":
-			$c = getField('c');
+			$d = getField('c');
 			$active = getField('active');
+			$name = 'company';
+			include('add.php');
 			break;
 		case "query_device":
 			$d = getField('d');
@@ -49,19 +52,22 @@
 			$d = getField('d');
 			$c = getField('c');
 			$sn = getField('sn');
+			$active = getField('active');
 			include("update_equipment.php");
 			break;
-		case 'updgrade_device':
+		case 'update_device':
 			$d = getField('d');
-			include("update_device.php");
+			$new = getField('new');
+			$name = "device";
+			$active = getField('active');
+			include("update.php");
 			break;
-		case 'upgrade_company':
-			$c = getField('c');
-			include("update_company");
-			break;
-		case 'upgrade_sn':
-			$sn = getField('sn');
-			include("update_sn");
+		case 'update_company':
+			$d = getField('c');
+			$new = getField('new');
+			$name = "company";
+			$active = getField('active');
+			include("update.php");
 			break;
 		case 'search_equip':
 			$d = getField('d');

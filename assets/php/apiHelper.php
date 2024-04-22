@@ -1,5 +1,45 @@
 <?php
 
+function validateAndSanitize($d, $logger, $name, $short, $endPoint, $time_start){
+		// validateAPI by name here..
+	if(!$d){
+		handle_logger('log_API_error', $logger, 200, $name.' is missing.', $name, $endPoint, $time_start);
+		handleAPIResponse(200, "Missing $name", '', $endPoint, $time_start);
+		exit();
+	}
+
+	if(!mb_detect_encoding($d, 'ASCII ', true) || !mb_detect_encoding($d, 'UTF-8', true)){
+		$encoding = mb_detect_encoding($d);
+		handle_logger('log_API_error', $logger, 200, 'Detected invalid encoding for $name: '.$encoding, 'api/query_'.$name, $endPoint, $time_start);
+		handleAPIResponse(200, "Invalid character encoding.", buildPayload(['encoding' => $encoding]), $endPoint, $time_start);
+		exit();
+	}
+
+	sanitizeAlpha($d, $d_sanitized, $extra);
+		if(!$d_sanitized){
+		handle_logger('log_API_error', $logger, 200, 'No alpha characters detected in .'.$name, 'api/query_'.$name, $endPoint, $time_start);
+		handleAPIResponse(200, "$name name should only have alpha characters.", "", $endPoint, $time_start);
+		exit();
+	}
+	
+	$n = strlen($d);
+	if( $n >= 32){
+		handle_logger('log_API_error',$logger, 200, $name.' length '.$n.' exceeded limit of 32.', 'api/query_'.$name, $endPoint, $time_start);
+		handleAPIResponse(200, "Max length of $name exceeded limit of 32.", buildPayload([$short=>$d_sanitized, 'length'=>$n]), $endPoint, $time_start, 'api/query_'.$name);
+		exit();
+	}
+
+	if($extra){ 
+		$msg = '';
+		foreach($extra as $key => $value){
+			$msg .= $key.': '.$value.', ';
+		}
+		$msg = rtrim($msg, ', ');
+		handle_logger('log_API_error', $logger, 200, 'Warning: removed '.$msg, 'Continued operation.', $endPoint, $time_start);
+	}
+	return $d_sanitized;
+}
+
 // TODO add search by index or name for sn.
 function validateAPI($logger, $d, $name, $endPoint, $action, $time_start){
 		if($d == null){

@@ -30,7 +30,7 @@ if ($row && $row['active']){
 	];
 	
 	handle_logger("log_API_op", $logger, $endPoint, '200', "Device $device($d) queried.", $time_start );
-	handleAPIResponse(200, 'Device Found!', buildPayload($payload), $endPoint, $time_start);
+	handleAPIResponse(200, 'Success', buildPayload($payload), $endPoint, $time_start);
 	exit();
 }
 // device is not active, log output and return not found
@@ -45,7 +45,7 @@ else {
 	else{
 		handle_logger("log_API_op", $logger, $endPoint, '200', "Device $d queried, not found.", $time_start );
 	}
-		handleAPIResponse(200, 'Device Not found', buildPayload($payload), $endPoint, $time_start);
+		handleAPIResponse(200, 'DNE', buildPayload($payload), $endPoint, $time_start);
 		exit();
 }
 ?>
