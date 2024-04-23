@@ -1,7 +1,6 @@
 <?php
-	$short = $name[0];
 	// validate for id (integer)
-	validateAPI($logger, $d, $name, $endPoint, $endPoint, $time_start);
+	validateAPI($logger, $d, $short, $endPoint, $endPoint, $time_start);
 	$new_sanitized = validateAndSanitize($new, $logger, $name, $short, $endPoint, $time_start);
 	if($active && ($active != 0 || $active != 1)){
 		// invalid active.

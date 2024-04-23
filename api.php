@@ -59,6 +59,7 @@
 			$d = getField('d');
 			$new = getField('new');
 			$name = "device";
+			$short = 'd';
 			$active = getField('active');
 			include("update.php");
 			break;
@@ -66,6 +67,7 @@
 			$d = getField('c');
 			$new = getField('new');
 			$name = "company";
+			$short = 'c';
 			$active = getField('active');
 			include("update.php");
 			break;
@@ -75,8 +77,14 @@
 			$sn = getField('sn');
 			$limit = getField('limit');
 			$active = getField('active');
-			include("search_equip");
+			include("search_equip.php");
 			break;
+		case 'search_one_equip.php':
+			$d = getField('d');
+			$c = getField('c');
+			$sn = getField('sn');
+			$active = getField('active');
+			include("search_one_equip.php");
 		default:
 			$output = handleAPIResponse('OK', 'Invalid endpoint', buildPayload(['endPoint' => $endPoint]), 'api/man', $time_start);
 			handle_logger("log_API_error", $logger, 200, "Invalid EndPoint", 'api/man', $endPoint,  $time_start );

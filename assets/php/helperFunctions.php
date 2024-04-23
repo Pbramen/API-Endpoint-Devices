@@ -6,47 +6,68 @@
 	}
 
 	// check if sn is in the correct format. Pre-append suffix if needed. 
-	function checkSNString(&$sn){
-		$err= 0;
-	
-		$res = preg_match("/^[a-fA-F\d]+$/i", substr($sn, 3), $matches, PREG_OFFSET_CAPTURE);
-		if (!$res){
-			//invalid hexstring
-			$err += 2;
-		}
-		return $err;
+//	function checkSNString(&$sn){
+//		$err= 0;
+//	
+//		$res = preg_match("/^[a-fA-F\d]+$/i", substr($sn, 3), $matches, PREG_OFFSET_CAPTURE);
+//		if (!$res){
+//			//invalid hexstring
+//			$err += 2;
+//		}
+//		return $err;
+//	}
+
+
+	// return true if valid hex characters are used.
+	function ord_hex($c){
+		return (($c >= 97 && $c <= 102) || ($c >= 48 && $c <= 57));
 	}
-	
 	function ord_alpha($c){
 		return ($c >= 65 && $c <= 90) || ($c >= 97 && $c <= 122);
 	}
 	
+	
+	
 	// validates and sanitizes result. 
-	function sanitizeAlpha($string, &$res, &$extra){
+	function sanitizeAlpha($string, &$res, &$extra, $fn){
 		$res = '';
 
 		$extra = array();
 		$string = trim($string);
 		$n = strlen($string);
 		
-		for ($i = 0; $i < $n; $i+=1){
-			$ordC = ord($string[$i]);
-			if( ord_alpha($ordC) || $ordC == 32 ){
-				
-				if($ordC == 32){
-					while($i < $n && !ord_alpha($ordC)){
-						$i+=1;
-						$ordC = ord($string[$i]);
+		// sanitize by alphanumeric.
+		if($fn == 0){
+			for ($i = 0; $i < $n; $i+=1){
+				$ordC = ord($string[$i]);
+				if( ord_alpha($ordC) || $ordC == 32 ){
+
+					if($ordC == 32){
+						while($i < $n && !ord_alpha($ordC)){
+							$i+=1;
+							$ordC = ord($string[$i]);
+						}
+						if(ord_alpha($ordC)){
+							$res .= ' '.chr($ordC);
+						}
 					}
-					if(ord_alpha($ordC)){
-						$res .= ' '.chr($ordC);
+					else{
+						$res .= chr($ordC);
 					}
+				}else{
+					$extra[$i] = '\''.chr($ordC).'\'';
 				}
-				else{
-					$res .= chr($ordC);
+			}
+		}
+		// sanitize by hexCode
+		else{
+			for ($i = 0; $i < $n; $i+=1){
+				$ordC = ord($string[$i]);
+				if( ord_hex($ordC) ){
+					$res .= $string[$i];
+				}else{
+					$extra[$i] = '\''.chr($ordC).'\'';
 				}
-			}else{
-				$extra[$i] = '\''.chr($ordC).'\'';
 			}
 		}
 	}
