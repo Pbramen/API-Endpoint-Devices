@@ -1,7 +1,7 @@
 <?php
 
 function __validate($d, $logger, $name, $endPoint, $time_start){
-	if(!$d){	
+	if($d == null){	
 		handle_logger('log_API_error', $logger, 200, $name.' is missing.', $name, $endPoint, $time_start);
 		handleAPIResponse(200, "Missing $name", '', $endPoint, $time_start);
 		exit();
@@ -51,7 +51,7 @@ function validateAPI($logger, $d, $name, $endPoint, $action, $time_start){
 		if($d == null){
 		//log error here.
 		handle_logger("log_API_error", $logger, 200, "$name is missing", $endPoint, $action, $time_start);
-		handleAPIResponse(200, "$name is missing.", "", $endPoint, $time_start);
+		handleAPIResponse(200, "Missing param", "", $endPoint, $time_start);
 		exit();
 	}
 
@@ -183,21 +183,22 @@ function log_API_op($logger, $url, $status, $msg, $start){
 // MUST be wrapped in try/catch and microtime
 function curl_POST($endpoint, $data, $logger, $url){
 	
-	$ch = curl_init($endpoint);
+	$ch = curl_init("https://ec2-18-117-229-80.us-east-2.compute.amazonaws.com/api/".$endpoint);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // DANGEROUS ignore self-signed ssl.
 	curl_setopt($ch, CURLOPT_POST, 1); // post
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $data); // fill data
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // response
-	curl_setopt($ch, CURLOPT_HTTPHEADER, array('content-type: application/x-www-form-urlencoded','content-length: '.strlen($data))); // content type and length of data sent by requester
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array('content-type: application/x-www-form-urlencoded', 'content-length: '.strlen($data))); // content type and length of data sent by requester
 
 	$result = curl_exec($ch);
 	if($result == false){
-		log_API_error($logger, curl_errno($ch), curl_error($ch), $url, "POST", "None");
+		//log_API_error($logger, curl_errno($ch), curl_error($ch), $url, "POST", "None");
 		echo 'Curl error ('.curl_errno($ch).'): '.curl_error($ch);
 		exit();
 	}
 	curl_close($ch);
-	echo $result;
+	//echo $result;
+	return $result;
 }
 
 // TODO curl_JSON 

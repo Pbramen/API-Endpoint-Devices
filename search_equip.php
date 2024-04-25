@@ -54,6 +54,8 @@
 	if($d){
 		validateAPI($logger, $d, "device", $endPoint, $endPoint, $time_start);
 		prepareFilters($params, "device", "i", "device_id", $d);
+		
+		// 
 	}
 	else {
 		$empty[] = "d";
@@ -66,7 +68,8 @@
 		$empty[] = "c";
 	}
 	if(count($empty) == 3){
-		handleAPIResponse(200, "Searching with no filters....", "", 'api/query_'.$name, $time_start);
+		handleAPIResponse(200, "Missing Parameters.", "", 'api/search_equip', $time_start);
+		handle_logger('log_API_error', $logger, 200, 'No parameters given.', 'None taken', $endPoint, $time_start);
 		exit();
 	}
 	
@@ -76,13 +79,6 @@
 
 	
 /*
-	function prepareFilters(&$params, $table, $type, $name, &$value){
-		$field = "$table.$name";
-		$params["attribute"] .= "$field, ";
-		$params["p"] .= "$field = (?) AND ";
-		$params["bind"] .= "$type";
-		array_push($params["values"], $value);
-	}
 
 	function buildString(&$params){
 		if($params['attribute'] != "") {

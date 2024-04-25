@@ -2,7 +2,7 @@
 	// view single equipment 
 	// search by primary keys sn or r_id
 
-	if($sn != null){
+	if($sn != null){ // query by sn value (client side)
 		// sanitize and validate sn
 		if(strlen($sn) > 3 && substr($sn, 0, 3) == "SN-"){
 			$sn = substr($sn, 3);
@@ -53,12 +53,17 @@
 			exit();
 		}
 
-	}
-	else if($r != null){
+	} // query by r_id (system use only)
+ 	else if($r != null){
 		// r must be numeric TODO : revist this function more more detailed loggging.
 		if(!is_numeric($r)){
-			handle_logger("log_API_error", $logger, 200, 'Invalid r_id data type.', $endPoint, 'api/search_one_equip', $time_start);
+			handle_logger("log_API_error", $logger, 200, 'Invalid r_id data type', $endPoint, 'api/search_one_equip', $time_start);
 			handleAPIResponse(200, "r_id must be digits only.", '', $endPoint, $time_start);
+			exit();
+		}
+		if(intval($r) <= 0){
+			handle_logger("log_API_error", $logger, 200, 'Negative r_id .', $endPoint, 'api/search_one_equip', $time_start);
+			handleAPIResponse(200, "r_id must be positive.", '', $endPoint, $time_start);
 			exit();
 		}
 		
@@ -67,30 +72,45 @@
 		$r2 = $res->get_result();
 		$row = $r2->fetch_assoc();
 		$sn_id = $row['sn_id'];
+		$payload = [
+			'sn' => ['id' => $row['sn_id']],
+			'device' => ['id' => $row['device_id'], 'value'=> $row['device']],
+			'company' => ['id' => $row['company_id'], 'value' => $row['company']]
+		];
 		
 		if($row){
 			// grab sn 
 			$sql = "Select sn, active from `sn` where sn_id=(?)";
 			try {
 				$res = bindAndExecute($db, $sql, "i", [$sn_id]);
-				$r = $res->get_result();
-				$row = $r->fetch_assoc();
+				$r2 = $res->get_result();
+				$row = $r2->fetch_assoc();
 				
 				if($row){
-					
+					$payload['sn']['value'] = $row['sn'];	
+					handleAPIResponse(200, "Success", buildPayload($payload), 'api/search_one_equip', $time_start);
+					handle_logger('log_API_op', $logger, $endPoint, 200, "Equipment R_ID($r) queried.", $time_start);
+					exit();
 				}
 				else{
 					// SYSTEM ERROR 
-					// we need to remove the relation from the tb.
+					handle_logger("log_API_error", $logger, 500, 'Missing sn value for '.$sn_id, 'api/search_one_equip', $time_start);
+					handleAPIResponse(500, "DB missing SN value", '' , $endPoint, $time_start);
+					exit();
 				}
 				
 			} catch( Mysqli_sql_exception $mse ){
-				
+				handleAPIResponse($mse->getCode(), "DB_ERR", buildPayload(['r' => $r]), 'api/search_one_equip', $time_start);
+				handle_logger('log_API_error', $logger, $mse->getCode(), 'Select SN value failed: '.$mse->getMessage(), 'None taken', $endPoint, $time_start);
+				exit();
 			} catch (Exception $e){
-				
+				handleAPIResponse($e->getCode(), "DB_ERR", buildPayload(['r' => $r]), 'api/search_one_equip', $time_start);
+				handle_logger('log_API_error', $logger, $e->getCode(), 'Select SN value failed: '.$e->getMessage(), 'None taken', $endPoint, $time_start);
+				exit();
 			}
 		}
 	}
+	// no valid params given
 	else{
 		handleAPIResponse(200, "Missing Params", "", 'api/search_equip', $time_start);
 		handle_logger('log_API_error', $logger, 200, 'Missing Param', 'api/search_one_equip', $endPoint, $time_start);
