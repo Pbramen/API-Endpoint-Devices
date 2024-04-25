@@ -16,6 +16,7 @@ function __validate($d, $logger, $name, $endPoint, $time_start){
 
 }
 
+
 function validateAndSanitize($d, $logger, $name, $short, $endPoint, $time_start, $size = 32, $fn = 0){
 	// validateAPI by name here..
 	__validate($d, $logger, $name, $endPoint, $time_start);
@@ -110,9 +111,11 @@ function handle_logger($fn, ...$args){
 	} catch (MySQLi_Sql_Exception $mse){
 		// mysqli error occured -> log to text file.
 		// mysqli connection error occured.
+		echo $mse;
 		$date = date('Y-m-d H:i:s');
 		error_log("\r\n[$date]: $mse\r\n", 3, $error_log);
 	} catch (Exception $e){
+		echo $e;
 		$date = date('Y-m-d H:i:s');
 		error_log("\r\n[$date]: $e\r\n", 3, $error_log);
 	}

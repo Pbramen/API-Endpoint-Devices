@@ -79,16 +79,15 @@
 			$active = getField('active');
 			include("search_equip.php");
 			break;
-		case 'search_one_equip.php':
-			$d = getField('d');
-			$c = getField('c');
+		case 'search_one_equip':
 			$sn = getField('sn');
-			$active = getField('active');
+			$r = getField('r');
 			include("search_one_equip.php");
+			break;
 		default:
-			$output = handleAPIResponse('OK', 'Invalid endpoint', buildPayload(['endPoint' => $endPoint]), 'api/man', $time_start);
+			handleAPIResponse('OK', 'Invalid endpoint', buildPayload(['endPoint' => $endPoint]), 'api/man', $time_start);
 			handle_logger("log_API_error", $logger, 200, "Invalid EndPoint", 'api/man', $endPoint,  $time_start );
-			
+			break;
 	}	
 
 
