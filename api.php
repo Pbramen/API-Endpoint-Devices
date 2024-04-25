@@ -6,7 +6,6 @@
 	$url = sanitizeDriver($logger, $_SERVER['REQUEST_URI'], "response URI", "api.php");
 	// error log for when mysqli connection fails.
 
-	
 	// get endpoint from the url
 	$path = parse_url($url, PHP_URL_PATH);
 	$pathComponents = explode("/", trim($path, "/"));
@@ -22,6 +21,7 @@
 			$d = getField('d');
 			$c = getField('c');
 			$sn = getField('sn');
+			$active = getField('active');
 			include("add_equipment.php");
 			break;
 		case "add_device":
@@ -38,15 +38,21 @@
 			break;
 		case "query_device":
 			$d = getField('d');
-			include("query_device.php");
+			$name = "device";
+			$active = getField("active");
+			include("query.php");
 			break;
 		case "query_company":
-			$c = getField('c');
-			include("query_company.php");
+			$d = getField('c');
+			$name = "company";
+			$active = getField("active");
+			include("query.php");
 			break;
 		case "query_sn":
-			$sn = getField('sn');
-			include("query_sn");
+			$d = getField('sn');
+			$name = "sn";
+			$active = getField("active");
+			include("query.php");
 			break;
 		case "update_equipment":
 			$d = getField('d');
