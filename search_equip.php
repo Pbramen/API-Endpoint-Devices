@@ -2,16 +2,16 @@
 	$active = $active | 1;
 	//validate active here...
 
-	if(!$limit){
+	if($limit == null){
 		$limit = 1000;
 	}
 	else if( is_numeric($limit) ){
+		$limit = strval($limit);
 		$limit = $limit < 1000 ? $limit : 1000;
 	}
 	else{
 		// log error here and exit
 	}
-	
 	$params = array('attribute' => "",
 					'p' => "",
 					'bind' => "",
@@ -25,44 +25,35 @@
 			$sn = substr($sn, 3);
 		}
 		$sn_sanitized =  validateAndSanitize($sn, $logger, 'sn', 'sn', $endPoint, $time_start, 84, 1);
-		try{
-			$sql = "Select sn_id from `sn` where sn = (?)";
-			$res = bindAndExecute($db, $sql, "s", ['SN-'.$sn_sanitized]);
-			$r = $res->get_result();
-			$row = $r->fetch_assoc();
-			
-			if(!$row){
-				handle_logger('log_API_error');
-				handleAPIResponse();
-				exit();
-			}
-			$sn_id = $row['sn_id'];
-		} catch (Mysqli_sql_exception $mse){
-			//
-			echo $mse;
-			exit();
-		} catch (Exception $e){
-		 	//
-			echo $e;
+		$sn_json = curl_POST('query_sn', "sn=$sn_sanitized&active=$active", $logger, $endPoint);
+		$sn_json = json_decode($sn_json, true);
+		
+		if(isset($sn_json['Status']) &&$sn_json['Status'] == 200 && $sn_json['MSG'] == 'Success'){
+			//sn and sn id found...
+			prepareFilters($params, "sn", "i", "sn_id", $sn_json["Payload"]["Fields"]["id"]);
+		}
+		else{
+			echo "system failure";
 			exit();
 		}
-		prepareFilters($params, "sn", "i", "sn", $sn_id );
 	}
 	else{
 		$empty[] = "sn";
 	}
+	// if $d == 0 -> same as no company filter. Returns error msg on negative
 	if($d){
 		validateAPI($logger, $d, "device", $endPoint, $endPoint, $time_start);
-		prepareFilters($params, "device", "i", "device_id", $d);
+		prepareFilters($params, "relation", "i", "device_id", $d);
 		
 		// 
 	}
 	else {
 		$empty[] = "d";
 	}
-	if($c){
+	// if $c == 0 -> same as no company filter. Returns error msg on negative.
+	if($c){ 
 		validateAPI($logger, $c, "company", $endPoint, $endPoint, $time_start);
-		prepareFilters($params, "company", "i", "company_id", $c);
+		prepareFilters($params, "relation", "i", "company_id", $c);
 	}
 	else{
 		$empty[] = "c";
@@ -72,25 +63,36 @@
 		handle_logger('log_API_error', $logger, 200, 'No parameters given.', 'None taken', $endPoint, $time_start);
 		exit();
 	}
-	
-	exit();
-	// query with limit
+	$sql = buildString($params);
+	array_push($params['values'], $limit);
+	array_push($params['values'], 0);
 
-
-	
-/*
-
-	function buildString(&$params){
-		if($params['attribute'] != "") {
-			$res = 'SELECT sn.sn, relation.r_id, relation.device_id, relation.company_id FROM relation JOIN `sn` ON sn.sn_id = relation.sn_id WHERE '.$params['p'];
-			$res = rtrim($res, "AND ");
+	try{	
+		$res = bindAndExecute($db, $sql, $params['bind'], $params['values']);
+		$r = $res->get_result();
+		$payload = array();
+		while($row = $r->fetch_assoc()){
+			array_push($payload, ['sn' => ['value' => $row['sn'], 'Action' => 'api/query_sn?sn='.$row['sn']], 
+								  'device' => ['id' =>$row['device_id'], 'Action' => 'api/query_device?d='.$row['device_id']], 
+								  'company' => ['id' => $row['company_id'], 'Action' => 'api/query_company?c='.$row['company_id']], 
+								  'r_id' => $row['r_id']]
+					  );
 		}
+		//TODO: LOG OPERATIONS AND ERRORS
+		if($payload){
+			handleAPIResponse(200, "Succss", buildPayload($payload), 'api/search_equip', $time_start);
+			exit();
+		} 
 		else{
-			$res =  "Select sn.sn, relation.device_id, relation.company_id FROM `relation` JOIN sn ON sn.sn_id=relation.sn_id";
+			handleAPIResponse(200, "DNE", "api/search_equip", 'api/search_equip', $time_start);
+			exit();
 		}
-		$res .= " LIMIT ? OFFSET ?";
-		$params["bind"] .= "ii";
-		return $res;
-	} 
-*/
+	} catch (MySQLi_Sql_Exception $mse){
+		echo $mse;
+		exit();
+	} catch(Exception $e){
+		echo $e;
+		exit();
+	}
+	
 ?>
