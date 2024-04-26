@@ -172,7 +172,7 @@
 	*/
 	function buildString(&$params){
 		if($params['attribute'] != "") {
-			$res = 'SELECT sn.sn, relation.r_id, relation.device_id, relation.company_id FROM relation JOIN `sn` ON sn.sn_id = relation.sn_id WHERE '.$params['p'];
+			$res = 'SELECT sn.sn_id, relation.r_id, relation.device_id, relation.company_id FROM relation JOIN `sn` ON sn.sn_id = relation.sn_id WHERE '.$params['p'];
 			$res = rtrim($res, "AND ");
 		}
 		else{
