@@ -1,5 +1,9 @@
 <?php
 
+function validResponse($json, $msg){
+	return isset($json['Status']) && $json['Status'] == 200 && isset($json['MSG']) && $json['MSG'] == $msg;
+}
+
 function __validate($d, $logger, $name, $endPoint, $time_start){
 	if($d == null){	
 		handle_logger('log_API_error', $logger, 200, $name.' is missing.', $name, $endPoint, $time_start);
@@ -103,6 +107,18 @@ function handle_json_encode($url, $endPoint, $start){
 		echo 'Error Code: ('.json_last_error().'). JSON Encoding failed. Try again later';
 	}
 }
+
+// handle json_decode operations
+function handle_decode($json, $opt = true){
+	$json = json_decode($json, $opt);
+	if($json == null){
+		handle_logger("log_API_error", $logger, 200, 'Invalid '.$name.'_id data type.', $endPoint, $action, $time_start);
+		handleAPIResponse(200, "$name must be digits only.", buildPayload([ $name[0] => $d]), $endPoint, $time_start);
+		exit();
+	}
+	return $json;
+}
+
 // callback function to handle all logging functions. 
 function handle_logger($fn, ...$args){
 	$error_log = '/var/www/html/api/logs/mysqli_error.txt';
@@ -201,49 +217,5 @@ function curl_POST($endpoint, $data, $logger, $url){
 	return $result;
 }
 
-// TODO curl_JSON 
-
-
-// calls the endpoint to query if record exists. 
-function check_Unique($endpoint, $field, $logger, $url){
-	$d_json = curl_POST($endpoint, $field, $logger, $url);
-	
-	if($d_json){
-		if (isset($d_json['MSG']) && $d_json['MSG'] == 'Status: NOT FOUND'){
-			//log error here
-			
-			//send back json with status message. 
-			exit();
-		}
-	}
-	else{
-		// log json error here
-		//log_API_error($logger, json_last_error(), json_last_error_msg(), $url, "JSON", "Try again");
-		handleJsonError();
-	}
-}
-
-/*
-	Handle output from curl to query endpoints. 
-	@param {Object} - JSON response from curl
-	@param {String} - attribute that was queried.
-*/
-function handleQueryEndpoint($json, $type){
-		if(isset($json["Status"]) && isset($json["MSG"])){
-		if($json["Status"] == "ERROR"){
-			//handle error here
-			$output[] = "Status: Missing $type";
-			$response = json_encode($output);
-			if(!$response) {
-				// log sys error here
-				handleJsonError();
-				exit();
-			}
-			// log api error here
-			echo $output;
-			exit();
-		}
-	}
-}
 
 ?>
