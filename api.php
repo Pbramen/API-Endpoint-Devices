@@ -59,7 +59,7 @@
 			$c = getField('c');
 			$sn = getField('sn');
 			$active = getField('active');
-			include("update_equipment.php");
+			include("modify_equipment.php");
 			break;
 		case 'update_device':
 			$d = getField('d');
