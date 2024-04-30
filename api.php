@@ -2,6 +2,7 @@
 	
 	include("./assets/php/loader/loadData.php");
 	include("./assets/php/apiHelper.php");
+	include("./assets/php/validators.php");
 
 	$url = sanitizeDriver($logger, $_SERVER['REQUEST_URI'], "response URI", "api.php");
 	// error log for when mysqli connection fails.
@@ -82,6 +83,7 @@
 			$c = getField('c');
 			$sn = getField('sn');
 			$limit = getField('limit');
+			$offset = getField('offset');
 			$active = getField('active');
 			include("search_equip.php");
 			break;
