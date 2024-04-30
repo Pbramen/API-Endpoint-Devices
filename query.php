@@ -8,7 +8,7 @@
 	}
 
 	//d queries by id
-	if(is_numeric($d) || $name == 'device' || $name == 'company'){
+	if(is_numeric($d) && ($name == 'device' || $name == 'company')){
 		//validates and sanitizes $d. Exits if invalid.
 		validateAPI($logger, $d, $name, $endPoint, $endPoint, $time_start);
 		$sql = 'SELECT * from '.$name.' where '.$name.'_id = (?) '. $active;
@@ -29,13 +29,13 @@
 			$fn = 0;
 			$len = 32;
 			$short = $name[0];
-		
-				// exits if not valid input (including null);
+			// exits if not valid input (including null);
 			$d = validateAndSanitize($d, $logger, $name, $short, $endPoint, $time_start, $len, $fn);
 		}
 
 		
 		$sql = 'SELECT * from '.$name.' where '.$name.' = (?) '.$active;
+
 		queryBy($db, $logger, $sql, "s", $d, $time_start, $endPoint, $name);
 		exit();
 	}	
