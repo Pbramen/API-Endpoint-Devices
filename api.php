@@ -88,6 +88,7 @@
 		case 'search_one_equip':
 			$sn = getField('sn');
 			$r = getField('r');
+			$active = getField('active');
 			include("search_one_equip.php");
 			break;
 		default:
