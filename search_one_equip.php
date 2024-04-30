@@ -24,7 +24,7 @@
 			}
 			$sn_id = $row['sn_id'];
 
-			$sql = "Select d.device, d.device_id, d.active as d_active, c.company_id, c.company, c.active as c_active from `relation` JOIN device as d on d.device_id = relation.device_id JOIN company as c on c.company_id = relation.company_id where relation.sn_id = (?)";
+			$sql = "Select relation.r_id, d.device, d.device_id, d.active as d_active, c.company_id, c.company, c.active as c_active from `relation` JOIN device as d on d.device_id = relation.device_id JOIN company as c on c.company_id = relation.company_id where relation.sn_id = (?)";
 			$res = bindAndExecute($db, $sql, "i", [$sn_id]);
 			$r = $res->get_result();
 			$row = $r->fetch_assoc();
@@ -32,7 +32,8 @@
 			if($row){
 				$payload = ['sn' => ['id'=> $sn_id, 'value'=> $sn_sanitized, 'status' => $sn_status],
 							'device' => ['id'=> $row['device_id'], 'value' => $row['device'], 'status' => $row['d_active']],
-							'company'=>	['id'=> $row['company_id'], 'value' => $row['company_id'], 'status' => $row['c_active']]];
+							'company'=>	['id'=> $row['company_id'], 'value' => $row['company_id'], 'status' => $row['c_active']],
+						    'r_id' => $row['r_id']];
 				
 				handleAPIResponse(200, "Success", buildPayload($payload), 'api/search_one_equip', $time_start);
 				handle_logger('log_API_op', $logger, $endPoint, 200, "Equipment SN($sn_id) queried.", $time_start);

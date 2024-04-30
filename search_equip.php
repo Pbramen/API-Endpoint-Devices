@@ -1,6 +1,13 @@
 <?php
-	$active = $active | 1;
+	if($active == null){
+		$active = 1;
+	}
 	//validate active here...
+	if($active != 0 && $active != 1){
+		handle_logger('log_API_error', $logger, 200, 'Invalid paramater given for active.', 'None taken', $endPoint, $time_start);
+		handleAPIResponse(200, "Invalid active param.", "", 'api/search_equip', $time_start);
+		exit();
+	}
 
 	if($limit == null){
 		$limit = 1000;
@@ -17,7 +24,7 @@
 					'bind' => "",
 					'values' => array()
 				   );
-	$empty = array();
+	$empty = 0;
 	// validate all other inputs here if not null
 	if($sn){
 		// validate and sanitize sn
@@ -26,7 +33,7 @@
 		}
 		$sn_sanitized =  validateAndSanitize($sn, $logger, 'sn', 'sn', $endPoint, $time_start, 84, 1);
 		$sn_json = curl_POST('query_sn', "sn=$sn_sanitized&active=$active", $logger, $endPoint);
-		$sn_json = json_decode($sn_json, true);
+		$sn_json = handle_decode($sn_json);
 		
 		if(isset($sn_json['Status']) &&$sn_json['Status'] == 200 && $sn_json['MSG'] == 'Success'){
 			//sn and sn id found...
@@ -38,7 +45,7 @@
 		}
 	}
 	else{
-		$empty[] = "sn";
+		$empty += 1;
 	}
 	// if $d == 0 -> same as no company filter. Returns error msg on negative
 	if($d){
@@ -48,7 +55,7 @@
 		// 
 	}
 	else {
-		$empty[] = "d";
+		$empty += 1;
 	}
 	// if $c == 0 -> same as no company filter. Returns error msg on negative.
 	if($c){ 
@@ -56,16 +63,12 @@
 		prepareFilters($params, "relation", "i", "company_id", $c);
 	}
 	else{
-		$empty[] = "c";
+		$empty += 1;
 	}
-	if(count($empty) == 3){
-		handleAPIResponse(200, "Missing Parameters.", "", 'api/search_equip', $time_start);
-		handle_logger('log_API_error', $logger, 200, 'No parameters given.', 'None taken', $endPoint, $time_start);
-		exit();
-	}
-	$sql = buildString($params);
-	array_push($params['values'], $limit);
-	array_push($params['values'], 0);
+
+	$sql = buildSQL($params, $active, $empty, $limit, $offset);
+	//echo $sql;
+	print_r($params['values']);
 
 	try{	
 		$res = bindAndExecute($db, $sql, $params['bind'], $params['values']);
@@ -80,11 +83,11 @@
 		}
 		//TODO: LOG OPERATIONS AND ERRORS
 		if($payload){
-			handleAPIResponse(200, "Succss", buildPayload($payload), 'api/search_equip', $time_start);
+			handleAPIResponse(200, "Success", buildPayload($payload), 'api/search_equip', $time_start);
 			exit();
 		} 
 		else{
-			handleAPIResponse(200, "DNE", "api/search_equip", 'api/search_equip', $time_start);
+			handleAPIResponse(200, "DNE", "", 'api/search_equip', $time_start);
 			exit();
 		}
 	} catch (MySQLi_Sql_Exception $mse){
@@ -93,6 +96,39 @@
 	} catch(Exception $e){
 		echo $e;
 		exit();
+	}
+
+	
+	function buildSQL(&$params, $active, $empty, $limit, $offset){
+		if($empty == 3){
+			$params['bind'] = 'ii';
+			$params['values'] = [$limit, $offset];
+
+			$sn_active = "";
+			$d_active = "";
+			$c_active = "";
+
+			if ($active){
+				$params['bind'] .= 'iiii';
+				array_push($params['values'], $limit);
+				array_push($params['values'], $offset);
+				array_push($params['values'], $limit);
+				array_push($params['values'], $offset);
+				$sn_active = "WHERE sn.active = 1";
+				$d_active = "WHERE d.active = 1";
+				$c_active = "WHERE c.active = 1";
+			}
+			// Query Optimizer for mysql optimizer...
+			$sql = "(Select r.r_id, sn.sn_id, c.company, d.device from relation as r JOIN sn ON r.sn_id = sn.sn_id JOIN company as c ON r.company_id = c.company_id JOIN device as d ON d.device_id = r.device_id $sn_active LIMIT ? OFFSET ?) UNION ALL (Select r.r_id, sn.sn_id, c.company, d.device from relation as r JOIN sn ON r.sn_id = sn.sn_id JOIN company as c ON r.company_id = c.company_id JOIN device as d ON d.device_id = r.device_id $c_active LIMIT ? OFFSET ?) UNION ALL (Select r.r_id, sn.sn_id, c.company, d.device from relation as r JOIN sn ON r.sn_id = sn.sn_id JOIN company as c ON r.company_id = c.company_id JOIN device as d ON d.device_id = r.device_id $d_active LIMIT ? OFFSET ?)";
+
+			//TODO: query without filters
+		}
+		else{
+			$sql = buildString($params);
+			array_push($params['values'], $limit);
+			array_push($params['values'], 0);
+		}
+		return $sql;
 	}
 	
 ?>
