@@ -21,7 +21,7 @@ function maxRange($entry, $limit){
 
 function validPagination($logger, &$entry, $fn, $limit, $name, $endPoint, $time_start){
 	if($entry == null){
-		$entry = $max; 
+		$entry = $limit; 
 	}
 	else if( is_numeric($entry) ){
 		$entry = call_user_func($fn, $entry, $limit);
@@ -44,11 +44,9 @@ function __validate($d, $logger, $name, $endPoint, $time_start){
 		handleAPIResponse(200, "Missing $name", '', $endPoint, $time_start);
 		exit();
 	}
-
-	if(!mb_detect_encoding($d, 'ASCII ', true) || !mb_detect_encoding($d, 'UTF-8', true)){
-		$encoding = mb_detect_encoding($d);
-		handle_logger('log_API_error', $logger, 200, 'Detected invalid encoding for  '.$name.' : '.$encoding, 'api/query_'.$name, $endPoint, $time_start);
-		handleAPIResponse(200, "Invalid character encoding.", buildPayload(['encoding' => $encoding]), $endPoint, $time_start);
+	if(!mb_detect_encoding($d, "ASCII", true) || !mb_detect_encoding($d, "UTF-8", true)){
+		handle_logger('log_API_error', $logger, 200, 'Detected invalid encoding for  '.$name, 'api/query_'.$name, $endPoint, $time_start);
+		handleAPIResponse(200, "Invalid character encoding.", buildPayload(['expected' => ["ASCII", "UTF-8"]]), $endPoint, $time_start);
 		exit();
 	}
 
@@ -86,12 +84,7 @@ function validateAndSanitize($d, $logger, $name, $short, $endPoint, $time_start,
 
 // TODO add search by index or name for sn.
 function validateAPI($logger, $d, $name, $endPoint, $action, $time_start){
-		if($d == null){
-		//log error here.
-		handle_logger("log_API_error", $logger, 200, "$name is missing", $endPoint, $action, $time_start);
-		handleAPIResponse(200, "Missing param", "", $endPoint, $time_start);
-		exit();
-	}
+	__validate($d, $logger, $name, $endPoint, $time_start);
 
 	if(!is_numeric($d)){
 		handle_logger("log_API_error", $logger, 200, 'Invalid '.$name.'_id data type.', $endPoint, $action, $time_start);
