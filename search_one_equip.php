@@ -2,6 +2,7 @@
 	// view single equipment 
 	// search by primary keys sn or r_id
 
+	
 	if($sn != null){ // query by sn value (client side)
 		// sanitize and validate sn
 		if(strlen($sn) > 3 && substr($sn, 0, 3) == "SN-"){

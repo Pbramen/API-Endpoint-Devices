@@ -35,7 +35,7 @@ function validateAndSanitize($d, $logger, $name, $short, $endPoint, $time_start,
 	$n = strlen($d);
 	if( $n >= $size){
 		handle_logger('log_API_error',$logger, 200, $name.' length '.$n.' exceeded limit of '.$size, 'api/query_'.$name, $endPoint, $time_start);
-		handleAPIResponse(200, "Max length of $name exceeded limit of $size.", buildPayload([$short=>$d_sanitized, 'length'=>$n]), $endPoint, $time_start, 'api/query_'.$name);
+		handleAPIResponse(200, "Max length exceeded", buildPayload([$short=>$d_sanitized, 'maxLength'=>$size, 'exceededLength'=> $n]), $endPoint, $time_start, 'api/query_'.$name);
 		exit();
 	}
 
