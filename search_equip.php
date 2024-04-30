@@ -11,18 +11,18 @@
 				   );
 	$empty = 0;
 	// validate all other inputs here if not null
-	if($sn){
+	if($sn != null){
 		// validate and sanitize sn
 		if(strlen($sn) > 3 && substr($sn, 0, 3) == "SN-"){
 			$sn = substr($sn, 3);
 		}
-		$sn_sanitized =  validateAndSanitize($sn, $logger, 'sn', 'sn', $endPoint, $time_start, 84, 1);
+		$sn_sanitized = validateAndSanitize($sn, $logger, 'sn', 'sn', $endPoint, $time_start, 84, 1);
 		$sn_json = curl_POST('query_sn', "sn=$sn_sanitized&active=$active", $logger, $endPoint);
 		$sn_json = handle_decode($sn_json);
 		
 		if(isset($sn_json['Status']) &&$sn_json['Status'] == 200 && $sn_json['MSG'] == 'Success'){
 			//sn and sn id found...
-			searchPrepare($params, "iii", 'AND sn.sn_id = (?)',  $sn_id, $limit, $offset);
+			searchPrepare($params, "i", 'AND sn.sn_id = (?)',  $sn_json['Payload']['Fields']['id']);
 		}
 		else{
 			// TODO handle error
@@ -31,23 +31,23 @@
 		}
 	}
 	else{
-		applyNoFilter($extra, $params, $limit, $offset);
+		applyNoFilter($extra, $params);
 	}
 	// if $d == 0 -> same as no company filter. Returns error msg on negative
 	if($d){
 		validateAPI($logger, $d, "device", $endPoint, $endPoint, $time_start);
-		searchPrepare($params, "iii", "AND d.device_id = (?) ", $d, $limit, $offset);
+		searchPrepare($params, "i", "AND d.device_id = (?) ", $d);
 	}
 	else {
-		applyNoFilter($extra, $params, $limit, $offset);
+		applyNoFilter($extra, $params);
 	}
 	// if $c == 0 -> same as no company filter. Returns error msg on negative.
 	if($c){ 
 		validateAPI($logger, $c, "company", $endPoint, $endPoint, $time_start);
-		searchPrepare($params, "iii", "AND c.company_id = (?) ", $c, $limit, $offset);
+		searchPrepare($params, "i", "AND c.company_id = (?) ", $c);
 	}
 	else{
-		applyNoFilter($extra, $params, $limit, $offset);	
+		applyNoFilter($extra, $params);	
 	}
 	$sql = buildSQL($params, $active, $empty, $limit, $offset);
 	
@@ -57,7 +57,7 @@
 		$payload = array();
 		while($row = $r->fetch_assoc()){
 			
-			array_push($payload, ['sn' => ['id' => $row['sn_id'], 'value' => $row['sn'], 'Action' => 'api/query_sn?sn='.$row['sn']], 
+			array_push($payload, ['sn' => ['value' => $row['sn'], 'Action' => 'api/query_sn?sn='.$row['sn']], 
 								  'device' => ['id' =>$row['device_id'], 'Action' => 'api/query_device?d='.$row['device_id']], 
 								  'company' => ['id' => $row['company_id'], 'Action' => 'api/query_company?c='.$row['company_id']], 
 								  'r_id' => $row['r_id']]
@@ -82,54 +82,36 @@
 
 	
 	function buildSQL(&$params, $active, $empty, $limit, $offset){
-		$sn_active = "";
-		$d_active = "";
-		$c_active = "";
 		
+		if($empty != 3){
+			$filters = "WHERE ";
+		}
+		$filters = $params['p'][0].' '.$params['p'][1].' '.$params['p'][2];
 		if ($active == 1){
-			$sn_active = "WHERE sn.active = 1";
-			$d_active = "WHERE d.active = 1";
-			$c_active = "WHERE c.active = 1";
+			$filters .= " AND sn.active = 1 AND d.active = 1 AND c.active = 1";
 		}
+		array_push($params['values'], $limit);
+		array_push($params['values'], $offset);
+		$params['bind'] .= "ii";
 		
-		if($empty == 3){
-			$params['bind'] = 'iiiiii';
-			$params['values'] = [$limit, $offset];
-
-			array_push($params['values'], $limit);
-			array_push($params['values'], $offset);
-			array_push($params['values'], $limit);
-			array_push($params['values'], $offset);
-			
 			// Query Optimizer for mysql optimizer...
-			$sql = "(Select r.r_id, sn.sn_id, sn.sn, c.company_id, d.device_id from relation as r JOIN sn ON r.sn_id = sn.sn_id JOIN company as c ON r.company_id = c.company_id JOIN device as d ON d.device_id = r.device_id $sn_active LIMIT ? OFFSET ?)
-			UNION ALL (Select r.r_id, sn.sn_id, sn.sn, c.company_id, d.device_id from relation as r JOIN sn ON r.sn_id = sn.sn_id JOIN company as c ON r.company_id = c.company_id JOIN device as d ON d.device_id = r.device_id $d_active LIMIT ? OFFSET ?) 
-			UNION ALL (Select r.r_id, sn.sn_id, sn.sn, c.company_id, d.device_id from relation as r JOIN sn ON r.sn_id = sn.sn_id JOIN company as c ON r.company_id = c.company_id JOIN device as d ON d.device_id = r.device_id $c_active LIMIT ? OFFSET ?)";
-
-			//TODO: query without filters
-		}
-		else{
-			$sql = '(Select r.r_id, sn.sn_id, sn.sn, c.company_id, d.device_id from relation as r JOIN sn ON r.sn_id = sn.sn_id JOIN company as c ON r.company_id = c.company_id JOIN device as d ON d.device_id = r.device_id '.$sn_active.$params['p'][0].' LIMIT ? OFFSET ?)
-			UNION ALL (Select r.r_id, sn.sn_id, sn.sn, c.company_id, d.device_id from relation as r JOIN sn ON r.sn_id = sn.sn_id JOIN company as c ON r.company_id = c.company_id JOIN device as d ON d.device_id = r.device_id '.$d_active.$params['p'][1].' LIMIT ? OFFSET ?) 
-			UNION ALL (Select r.r_id, sn.sn_id, sn.sn, c.company_id, d.device_id from relation as r JOIN sn ON r.sn_id = sn.sn_id JOIN company as c ON r.company_id = c.company_id JOIN device as d ON d.device_id = r.device_id '.$c_active.$params['p'][2].' LIMIT ? OFFSET ?)';
-			
-		}
+		$sql = "SELECT r.r_id, c.company_id, d.device_id, sn.sn FROM `relation` as r
+					JOIN `company` as c ON c.company_id = r.company_id
+					JOIN `device` as d ON d.device_id = r.device_id
+					JOIN `sn` ON sn.sn_id = r.sn_id 
+						$filters LIMIT ? OFFSET ?";
+		
 		return $sql;
 	}
 
-	function searchPrepare(&$params, $bind, $cond, $value, $limit, $offset){
+	function searchPrepare(&$params, $bind, $cond, $value){
 		$params['bind'] .= $bind;
 		array_push($params['p'], " $cond");
 		array_push($params['values'], $value);
-		array_push($params['values'], $limit);
-		array_push($params['values'], $offset);
 	}
 
-	function applyNoFilter(&$extra, &$params, $limit, $offset){
+	function applyNoFilter(&$extra, &$params){
 		$extra += 1;
 		array_push($params['p'], "");
-		array_push($params['values'], $limit);
-		array_push($params['values'], $offset);
-		$params['bind'] .= 'ii';
 	}
 ?>
