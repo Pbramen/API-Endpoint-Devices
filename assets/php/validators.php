@@ -39,7 +39,7 @@ function validResponse($json, $msg){
 }
 
 function __validate($d, $logger, $name, $endPoint, $time_start){
-	if($d == null){	
+	if($d === null){	
 		handle_logger('log_API_error', $logger, 200, $name.' is missing.', $name, $endPoint, $time_start);
 		handleAPIResponse(200, "Missing $name", '', $endPoint, $time_start);
 		exit();
