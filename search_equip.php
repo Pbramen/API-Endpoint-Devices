@@ -1,15 +1,18 @@
 <?php
 
+
 	validPagination($logger, $limit, "maxRange", 1000, 'limit', $endPoint, $time_start);
+	// NOTE offset is only used in pagination -> r_id > offset
 	validPagination($logger, $offset, "minRange", 0, 'offset', $endPoint, $time_start);
 	validActive($logger, $active, $endPoint, $time_start);
-
+	
 	$params = array(
 					'p' => array(),
 					'bind' => "",
 					'values' => array()
 				   );
 	$empty = 0;
+	searchPrepare($params, 'i', 'r.r_id >= ?', $offset);
 	// validate all other inputs here if not null
 	if($sn != null){
 		// validate and sanitize sn
@@ -17,16 +20,17 @@
 			$sn = substr($sn, 3);
 		}
 		$sn_sanitized = validateAndSanitize($sn, $logger, 'sn', 'sn', $endPoint, $time_start, 84, 1);
+		
 		$sn_json = curl_POST('query_sn', "sn=$sn_sanitized&active=$active", $logger, $endPoint);
-		$sn_json = handle_decode($sn_json);
+		$sn_json = handle_decode($sn_json, $logger, "sn", $endPoint,"None Taken", $time_start);
 		
 		if(isset($sn_json['Status']) &&$sn_json['Status'] == 200 && $sn_json['MSG'] == 'Success'){
 			//sn and sn id found...
 			searchPrepare($params, "i", 'AND sn.sn_id = (?)',  $sn_json['Payload']['Fields']['id']);
 		}
 		else{
-			// TODO handle error
-			echo "system failure";
+			handle_logger('log_API_error', $logger, 200, "Search sn DNE: $sn, $active", 'add_equipment.php', $endPoint, $time_start);
+			handleAPIResponse(200, "DNE", "", 'api/search_equip', $time_start);
 			exit();
 		}
 	}
@@ -49,7 +53,7 @@
 	else{
 		applyNoFilter($extra, $params);	
 	}
-	$sql = buildSQL($params, $active, $empty, $limit, $offset);
+	$sql = buildSQL($params, $active, $extra, $limit, $offset);
 	
 	try{	
 		$res = bindAndExecute($db, $sql, $params['bind'], $params['values']);
@@ -69,6 +73,7 @@
 			exit();
 		} 
 		else{
+			handle_logger('log_API_error', $logger, 200, "Search sn DNE: $sn, $active", 'add_equipment.php', $endPoint, $time_start);
 			handleAPIResponse(200, "DNE", "", 'api/search_equip', $time_start);
 			exit();
 		}
@@ -85,24 +90,21 @@
 	
 	function buildSQL(&$params, $active, $empty, $limit, $offset){
 		
-		if($empty != 3){
-			$filters = "WHERE ";
-		}
-		$filters = $params['p'][0].' '.$params['p'][1].' '.$params['p'][2];
+		
+		$filters = "WHERE";
+		$filters .= $params['p'][0].' '.$params['p'][1].' '.$params['p'][2].' '.$paarms['p'][3];
 		if ($active == 1){
-			$filters .= " AND sn.active = 1 AND d.active = 1 AND c.active = 1";
+			$filters .= ' AND ';
+			$filters .= "sn.active = 1 AND d.active = 1 AND c.active = 1 AND r.active = 1";
 		}
 		array_push($params['values'], $limit);
-		array_push($params['values'], $offset);
-		$params['bind'] .= "ii";
-		
+		$params['bind'] .= "i";
 			// Query Optimizer for mysql optimizer...
 		$sql = "SELECT r.r_id, c.company_id, d.device_id, sn.sn FROM `relation` as r
 					JOIN `company` as c ON c.company_id = r.company_id
 					JOIN `device` as d ON d.device_id = r.device_id
 					JOIN `sn` ON sn.sn_id = r.sn_id 
-						$filters LIMIT ? OFFSET ?";
-		
+						$filters LIMIT ?";
 		return $sql;
 	}
 
