@@ -29,12 +29,12 @@
 			exit();
 		}
 	} catch (MySQLi_Sql_Exception $mse){
-		handle_logger('log_API_error', $logger, 200, 'Update failed: '.$mse->getMessage(), 'api/query_'.$name, $endPoint, $time_start);
-		handleAPIResponse(200, "MSE error", [ 'Fields' => array($short=> $d)], $endPoint, $time_start );
+		handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE:'.$mse->getCode(), 'None taken.', $time_start );
+		handleAPIResponse(500, "DB_ERROR", "", $endPoint, $time_start );
 		exit();
 	} catch (Exception $e) {
-		handle_logger('log_API_error', $logger, 200, 'Other exception: '.$e->getMessage(), 'api/query_'.$name, $endPoint, $time_start);
-		handleAPIResponse(200, "Other exception", [ 'Fields' => array($short=> $d)], $endPoint, $time_start );
+		handle_logger("log_sys_err", $logger, $e->getMessage(), $endPoint, $e->getTraceAsString(), 'E:'.$e->getCode(), 'None taken.', $time_start );;
+		handleAPIResponse(500, "OTHER_ERROR", "", $endPoint, $time_start );
 		exit();
 	}
 ?>

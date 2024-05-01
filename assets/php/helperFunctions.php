@@ -61,6 +61,7 @@
 		}
 		// sanitize by hexCode
 		else{
+			$string = strtolower($string);
 			for ($i = 0; $i < $n; $i+=1){
 				$ordC = ord($string[$i]);
 				if( ord_hex($ordC) ){

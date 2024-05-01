@@ -45,13 +45,13 @@
 		try{
 			$res = bindAndExecute($db, $sql, $bind, [$d]);
 		} catch (Mysqli_SQL_Exception $mse){
-			handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE_ERR', 'None taken.', $time_start );
-			handleAPIResponse(500, 'Unable to query database.', buildPayload(['d' => $d]), $endPoint, $time_start);
+			handle_logger("DB_ERROR", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE:'.$mse->getCode(), 'None taken.', $time_start );
+			handleAPIResponse(500, 'Unable to query database.', '', $endPoint, $time_start);
 			exit();
 		} catch (Exception $e) {
 			// log error here
-			handle_logger("log_sys_err", $logger, $e->getMessage(), $endPoint, $e->getTraceAsString(), 'MSE_ERR', 'None taken.', $time_start );
-			handleAPIResponse(500, 'Unable to query database.', buildPayload(['d' => $d]), $endPoint, $time_start);
+			handle_logger("log_sys_err", $logger, $e->getMessage(), $endPoint, $e->getTraceAsString(), 'E:'.$e->getCode(), 'None taken.', $time_start );;
+			handleAPIResponse(500, 'OTHER_ERROR', '', $endPoint, $time_start);
 			exit();
 		}
 

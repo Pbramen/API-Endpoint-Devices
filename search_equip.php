@@ -73,11 +73,13 @@
 			exit();
 		}
 	} catch (MySQLi_Sql_Exception $mse){
-		echo $mse;
-		exit();
+			handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE:'.$mse->getCode(), 'None taken.', $time_start );
+			handleAPIResponse(500, 'DB_ERROR', '', $endPoint, $time_start);
+			exit();
 	} catch(Exception $e){
-		echo $e;
-		exit();
+			handleAPIResponse(500, 'DB_ERROR', '', $endPoint, $time_start);
+			handle_logger("log_sys_err", $logger, $e->getMessage(), $endPoint, $e->getTraceAsString(), 'E:'.$e->getCode(), 'None taken.', $time_start );
+			exit();
 	}
 
 	
