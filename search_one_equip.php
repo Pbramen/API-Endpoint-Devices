@@ -4,13 +4,10 @@
 	
 	validActive($logger, $active, $endPoint, $time_start);
 
-	$sn_active = "";
-	$d_active = "";
-	$c_active = "";
+	$is_active;
+	// record is only active if all elements have status of 1. 
 	if($active == 1){
-		$sn_active = "AND sn.active = 1";
-		$d_active = "AND d.active = 1";
-		$c_active = "AND c.active = 1";
+		$is_active = "AND sn.active = 1 AND d.active = 1 AND c.active = 1 AND r.active = 1";
 	}
 
 	if($sn != null){ // query by sn value (client side)
@@ -35,7 +32,7 @@
 				JOIN `company` as c ON c.company_id = r.company_id
 				JOIN `device` as d ON d.device_id = r.device_id
 				JOIN `sn` ON sn.sn_id = r.sn_id 
-					WHERE sn.sn=(?) LIMIT 1";
+					WHERE sn.sn=(?) $is_active LIMIT 1";
 			$res = bindAndExecute($db, $sql, "s", [$sn_sanitized]);
 			$r = $res->get_result();
 			$row = $r->fetch_assoc();
