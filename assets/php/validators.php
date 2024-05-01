@@ -20,7 +20,7 @@ function maxRange($entry, $limit){
 }
 
 function validPagination($logger, &$entry, $fn, $limit, $name, $endPoint, $time_start){
-	if($entry == null){
+	if($entry === null){
 		$entry = $limit; 
 	}
 	else if( is_numeric($entry) ){
