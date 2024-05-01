@@ -46,8 +46,8 @@
 				try{
 					$res = bindAndExecute($db, $sql, 'si', [$sn, $active]);
 					$sn_id = $res->insert_id;
-					echo $sn_id;
 					$res->close();
+					handle_logger("log_API_op", $logger, $endPoint, '200', "SN added: $sn_id, $active", $time_start );
 				} catch (Mysqli_sql_exception $mse){
 					handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE:'.$mse->getCode(), 'None taken.', $time_start );
 					handleAPIResponse(500, 'DB_ERROR', '', $endPoint, $time_start);
@@ -73,6 +73,8 @@
 								 'company'=>['id'=> $c, "Action" => 'api/query_company?c='.$c],
 								 'sn' => ['id' => $sn_id, 'Action' => 'api/query_sn?sn='.$sn],
 	 							 'r_id' => $res->insert_id];
+					
+					handle_logger("log_API_op", $logger, $endPoint, '200', "Equipment added; $sn_id, $d, $c", $time_start );
 					handleAPIResponse(200, 'Success', buildPayload($payload), $endPoint, $time_start, 'api/search_one_equip?r='.$sn);
 					$res->close();
 					exit();
