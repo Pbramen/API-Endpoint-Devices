@@ -17,14 +17,14 @@
 			<div class="feature-thumb">
 				<h3>Add Equipment</h3>
 				<p>Click here to add new equipment.</p>
-				<a href="addNew.php" class="btn btn-default smoothScroll">Discover more</a>
+				<a href="./addNew.php" class="btn btn-default smoothScroll">Discover more</a>
 			 </div>
 		</div>
 		<div class="col-md-4 col-sm-4">
 			 <div class="feature-thumb">
 				  <h3>Add New Device</h3>
 				  <p>Click here to add new device</p>
-				 <a href="addDevice.php" class="btn btn-default smoothScroll">Discover more</a>
+				 <a href="./addDevice.php" class="btn btn-default smoothScroll">Discover more</a>
 			 </div>
 		</div>
 
@@ -32,7 +32,7 @@
 			 <div class="feature-thumb">
 				  <h3>Add New Manufacturer</h3>
 				  <p>Click here to new an manufacturer</p>
-				 <a href="addCompany.php" class="btn btn-default smoothScroll">Discover more</a>
+				 <a href="./addCompany.php" class="btn btn-default smoothScroll">Discover more</a>
 			 </div>
 			</div>
 		</div>

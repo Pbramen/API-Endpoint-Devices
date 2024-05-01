@@ -6,6 +6,7 @@
  
  <!-- MENU -->
  	 <?php
+          $root = '/var/www/html';
 		//imports all base css
 		//head tag ends and starts body tag
 		include("./assets/php/components/templateCSS.php");
@@ -38,14 +39,14 @@
                          <div class="feature-thumb">
                               <h3>Search Equipment</h3>
                               <p>Click here to search the equipment database.</p>
-                              <a href="search/search.php" class="btn btn-default smoothScroll">Discover more</a>
+                              <a href="./web/search/search.php" class="btn btn-default smoothScroll">Discover more</a>
                          </div>
                     </div>
                     <div class="col-md-4 col-sm-4">
                          <div class="feature-thumb">
                               <h3>Add Equipment</h3>
                               <p>Click here to add new equipment</p>
-                             <a href="add/addHome.php" class="btn btn-default smoothScroll">Discover more</a>
+                             <a href="./web/add/addHome.php" class="btn btn-default smoothScroll">Discover more</a>
                          </div>
                     </div>
 				   
@@ -53,7 +54,7 @@
                          <div class="feature-thumb">
                               <h3>Update Equipment</h3>
                               <p>Click here to update an equipment</p>
-                             <a href="update/update.php" class="btn btn-default smoothScroll">Discover more</a>
+                             <a href="./web/update/update.php" class="btn btn-default smoothScroll">Discover more</a>
                          </div>
                     </div>
 

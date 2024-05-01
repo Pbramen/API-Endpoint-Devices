@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Advanced Software Engineering</title>
-    <link href="/form/assets/css/custom.css" rel="stylesheet">
+    <link href="/var/www/html/assets/css/custom.css" rel="stylesheet">
 	<?php
 		include("../../assets/php/components/templateCSS.php");
 		include("../../assets/php/components/nav.php");
@@ -19,12 +19,7 @@
 		// default option - no filter: (similar to 'select * from device where 1')
 		$device["0"] = "N/A";
 		$company["0"] = "N/A";
-	
-		// start db connection
-		include('../../assets/php/loader/loadData.php');
-		// get all devices and companies from db
-		include("../../assets/php/loader/loadDevices.php");
-		include("../../assets/php/loader/loadCompanies.php");		
+		
 		$baseURL = "https://ec2-18-117-229-80.us-east-2.compute.amazonaws.com/form/web/search/search.php";
 	?>
 	 <section id="feature">

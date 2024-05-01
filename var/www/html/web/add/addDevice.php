@@ -7,9 +7,6 @@
      <?php
 		include("../../assets/php/components/templateCSS.php");
 		include("../../assets/php/components/nav.php");
-		include('../../assets/php/loader/loadData.php');
-		$baseURL = 'https://ec2-18-117-229-80.us-east-2.compute.amazonaws.com/form/web/add/addDevice.php';
-	
 	?>
 	<!-- lOGO TEXT HERE -->
 	<a href="#" class="navbar-brand">Add New Device</a>
@@ -58,54 +55,54 @@
 
 	<?php
 		if(isset($_POST["device"]) && isset($_POST["submit"])){
-			$d = $_POST["device"];
-			$n = mb_strlen($d, 'UTF-8');
-			$d = sanitizeDriver($logger, $d, "device", "device");
+			// $d = $_POST["device"];
+			// $n = mb_strlen($d, 'UTF-8');
+			// $d = sanitizeDriver($logger, $d, "device", "device");
 			
-			if($n >= 32){
-				$logger->insertSysErr("Device length exceeded: $n", "addDevice.php");
-				header("Location: $baseURL?msg=InvalidLen");
-				exit();
-			}
-			if(checkAlpha($d, $res)){
-				$logger->insertSysErr("Attempted to add device with invalid character $res", "addDevice.php");
-				header("Location: $baseURL?msg=InvalidFormat");
-				exit();
-			}
-			// check if unique
-			$sql = "Select device_id from device where device = (?)";
-			try{
-				$p = [$d];
-				$res = bindAndExecute($db, $sql, "s", $p);	
-				$res->store_result();
-				$res->fetch();
+			// if($n >= 32){
+			// 	$logger->insertSysErr("Device length exceeded: $n", "addDevice.php");
+			// 	header("Location: $baseURL?msg=InvalidLen");
+			// 	exit();
+			// }
+			// if(checkAlpha($d, $res)){
+			// 	$logger->insertSysErr("Attempted to add device with invalid character $res", "addDevice.php");
+			// 	header("Location: $baseURL?msg=InvalidFormat");
+			// 	exit();
+			// }
+			// // check if unique
+			// $sql = "Select device_id from device where device = (?)";
+			// try{
+			// 	$p = [$d];
+			// 	$res = bindAndExecute($db, $sql, "s", $p);	
+			// 	$res->store_result();
+			// 	$res->fetch();
 				
-				// if not -> send warning
-				if($res->num_rows == 1){
-					$logger->insertSysErr("Attempted to add an existing device $d", "addDevice.php");
-					header("Location: $baseURL?msg=DeviceExist");
-					exit();
-				}
-				$res->close();
+			// 	// if not -> send warning
+			// 	if($res->num_rows == 1){
+			// 		$logger->insertSysErr("Attempted to add an existing device $d", "addDevice.php");
+			// 		header("Location: $baseURL?msg=DeviceExist");
+			// 		exit();
+			// 	}
+			// 	$res->close();
 				
-				// insert new device
-				$sql= "INSERT into device (device) VALUES (?)";
-				$res = bindAndExecute($db, $sql, "s", $p);
-				$res->close();
+			// 	// insert new device
+			// 	$sql= "INSERT into device (device) VALUES (?)";
+			// 	$res = bindAndExecute($db, $sql, "s", $p);
+			// 	$res->close();
 				
-				//insert operation here
-				logOperation($logger, 'addDevice.php', "Added device $d", 'post');
-				header("Location: $baseURL?msg=success");
-				exit();
-			} catch (Mysqli_Sql_exception $mse){
-				$logger->insertSysErr($mse, "addDevice.php");
-				header("Location: $baseURL?msg=DBERR");
-				exit();
-			} catch (Exception $e){
-				$logger->insertSysErr($e, "addDevice.php");
-				header("Location: $baseURL?msg=DBERR");
-				exit();
-			}
+			// 	//insert operation here
+			// 	logOperation($logger, 'addDevice.php', "Added device $d", 'post');
+			// 	header("Location: $baseURL?msg=success");
+			// 	exit();
+			// } catch (Mysqli_Sql_exception $mse){
+			// 	$logger->insertSysErr($mse, "addDevice.php");
+			// 	header("Location: $baseURL?msg=DBERR");
+			// 	exit();
+			// } catch (Exception $e){
+			// 	$logger->insertSysErr($e, "addDevice.php");
+			// 	header("Location: $baseURL?msg=DBERR");
+			// 	exit();
+			// }
 		}
 	
 	?>

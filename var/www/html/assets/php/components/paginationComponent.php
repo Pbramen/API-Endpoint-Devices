@@ -1,3 +1,14 @@
+<!--
+	TODO: 
+		* Remove DB calls
+		* Calculate each link's value based on last record's r_id, limit, and total results. 
+		* Remove offset
+
+	OPTIONAL: 
+		* Add search bar for page
+		* add first and last.
+-!>
+
 <!-- Paganition component that should have already declared and init limit, page, and total page.  -->
 <?php
 	// fallback
