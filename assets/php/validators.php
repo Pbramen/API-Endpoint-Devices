@@ -1,6 +1,6 @@
 <?php
 function validActive($logger, &$active, $endPoint, $time_start){
-	if($active == null){
+	if($active === null){
 		$active = 1;
 		return;
 	}

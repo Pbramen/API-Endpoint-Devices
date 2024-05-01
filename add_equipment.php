@@ -1,16 +1,8 @@
 <?php
 
 //	handle validation and sanitation here...
+	validActive($logger, $active, $endPoint, $time_start);
 	
-	if($active == null){
-		$active == 1;
-	}
-	if($active != 0 && $active != 1){
-		handle_logger('log_API_error', $logger, 200, 'Invalid paramater given for active.', 'None taken', $endPoint, $time_start);
-		handleAPIResponse(200, "Invalid active Paramter.", "", 'api/search_equip', $time_start);
-		exit();
-	}
-
 	if($d != null){
 		//validate and sanitize digit
 		checkDigit($logger, $d, "device", $endPoint, $time_start);
@@ -37,20 +29,16 @@
 
 		$sn = "SN-".validateAndSanitize($sn, $logger, "sn", "sn", $endPoint, $time_start, 84, 1);
 		$res = curl_POST("search_one_equip", "sn=$sn&active=$active", $logger, $url);
-		$res = handle_decode($res, true);
+		$res = handle_decode($res, $logger, 'sn', $endPoint, 'None taken', $time_start, true);
 		
 		if(validResponse($res, "DNE")){
 			// query if sn exists but has no relation.
 			$res = curl_POST('query_sn', "sn=$sn", $logger, $endPoint);
-			$res = handle_decode($res);
+			$res = handle_decode($res, $logger, 'sn', $endPoint, 'None taken', $time_start, true);
 			
 			// if valid -> insert
 			if(validResponse($res, "Success")){
 				$sn_id = $res['Payload']['Fields']['id'];
-				$active = $res['Payload']['Fields']['active'];
-				if($active != $active){
-					// update sn...
-				}
 			}
 			else{
 				// insert sn and grab id...
@@ -61,21 +49,22 @@
 					echo $sn_id;
 					$res->close();
 				} catch (Mysqli_sql_exception $mse){
-					handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE_ERR', 'None taken.', $time_start );
-					handleAPIResponse(500, 'Unable to query database.', buildPayload(['d' => $d]), $endPoint, $time_start);
+					handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE:'.$mse->getCode(), 'None taken.', $time_start );
+					handleAPIResponse(500, 'DB_ERROR', '', $endPoint, $time_start);
 					exit();
 				} catch (Exception $e){
-					handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE_ERR', 'None taken.', $time_start );
-					handleAPIResponse(500, 'Unable to query database.', buildPayload(['d' => $d]), $endPoint, $time_start);
+					handle_logger("log_sys_err", $logger, $e->getMessage(), $endPoint, $e->getTraceAsString(), 'E:'.$e->getCode(), 'None taken.', $time_start );
+					handleAPIResponse(500, 'OTHER_ERROR', '', $endPoint, $time_start);
 					exit();
 				}
 				
 			}
 			// insert new relation
-			$sql = 'Insert into `relation` (sn_id, device_id, company_id) VALUES (?, ?, ?)';
+			$sql = 'Insert into `relation` (sn_id, device_id, company_id, active) VALUES (?, ?, ?, ?)';
 				
 			try{
-				$res = bindAndExecute($db, $sql, "iii", [$sn_id, $d, $c]);
+				echo $active;
+				$res = bindAndExecute($db, $sql, "iiii", [$sn_id, $d, $c, $active]);
 				
 				if($res->affected_rows == 1){
 				
@@ -84,7 +73,7 @@
 								 'company'=>['id'=> $c, "Action" => 'api/query_company?c='.$c],
 								 'sn' => ['id' => $sn_id, 'Action' => 'api/query_sn?sn='.$sn],
 	 							 'r_id' => $res->insert_id];
-					handleAPIResponse(200, 'Success', buildPayload($payload), $endPoint, $time_start, 'api/search_one_equip?r='.$r);
+					handleAPIResponse(200, 'Success', buildPayload($payload), $endPoint, $time_start, 'api/search_one_equip?r='.$sn);
 					$res->close();
 					exit();
 				}
@@ -94,12 +83,12 @@
 					exit();
 				}
 			} catch (Mysqli_sql_exception $mse){
-					handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE_ERR', 'None taken.', $time_start );
-					handleAPIResponse(500, 'Unable to query database.', buildPayload(['d' => $d]), $endPoint, $time_start);
+					handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE:'.$mse->getCode(), 'None taken.', $time_start );
+					handleAPIResponse(500, 'DB_ERROR', '', $endPoint, $time_start);
 					exit();
 			} catch (Exception $e){
-					handle_logger("log_sys_err", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE_ERR', 'None taken.', $time_start );
-					handleAPIResponse(500, 'Unable to query database.', buildPayload(['d' => $d]), $endPoint, $time_start);
+					handle_logger("log_sys_err", $logger, $e->getMessage(), $endPoint, $e->getTraceAsString(), 'E:'.$e->getCode(), 'None taken.', $time_start );
+					handleAPIResponse(500, 'OTHER_ERROR', '', $endPoint, $time_start);
 					exit();
 			}
 		}
@@ -118,12 +107,11 @@
 
 
 	function checkDigit($logger, $d, $name, $endPoint, $time_start){
-		validateAPI($logger, $d, $name, $endPoint, "api/add_equipment.php", $time_start);
 		if($d != null){
 		//validate and sanitize digit
 			validateAPI($logger, $d, $name, $endPoint, "api/add_equipment.php", $time_start);
 			$res = curl_POST('query_'.$name, "$name[0]=$d", $logger, $endPoint);
-			$res = handle_decode($res);
+			$res = handle_decode($res, $logger, $name, $endPoint, 'None Taken', $time_start);
 			if(!validResponse($res, "Success")){
 				handle_logger('log_API_error', $logger, 200, "$name does not exist.", 'add_equipment.php', $endPoint, $time_start);
 				handleAPIResponse(200, 'DNE', $name, $endPoint, $time_start, 'add_equipment.php');
