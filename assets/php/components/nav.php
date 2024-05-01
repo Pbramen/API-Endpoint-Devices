@@ -13,10 +13,10 @@
 	   <!-- MENU LINKS -->
 	   <div class="collapse navbar-collapse">
 			<ul class="nav navbar-nav navbar-nav-first">
-				 <li><a href="/var/www/html/index.php" class="smoothScroll">Home</a></li>
-				 <li><a href="/var/www/html/web/search/search.php" class="smoothScroll">Search Equipment</a></li>
-				 <li><a href="/var/www/html/web/add/addHome.php" class="smoothScroll">Add Equipment</a></li>
-				 <li><a href="/var/www/html/web/update/update.php" class="smoothScroll"> Modify Equipment</a></li>
+				 <li><a href="/index.php" class="smoothScroll">Home</a></li>
+				 <li><a href="/web/search/search.php" class="smoothScroll">Search Equipment</a></li>
+				 <li><a href="/web/add/addHome.php" class="smoothScroll">Add Equipment</a></li>
+				 <li><a href="/web/update/update.php" class="smoothScroll"> Modify Equipment</a></li>
 			</ul>
 	   </div>
   </div>

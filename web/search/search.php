@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Advanced Software Engineering</title>
-    <link href="/var/www/html/assets/css/custom.css" rel="stylesheet">
+    <link href="/assets/css/custom.css" rel="stylesheet">
 	<?php
 		include("../../assets/php/components/templateCSS.php");
 		include("../../assets/php/components/nav.php");
@@ -20,7 +20,6 @@
 		$device["0"] = "N/A";
 		$company["0"] = "N/A";
 		
-		$baseURL = "https://ec2-18-117-229-80.us-east-2.compute.amazonaws.com/form/web/search/search.php";
 	?>
 	 <section id="feature">
 	  <div class="container">
