@@ -1,0 +1,42 @@
+/* CSS Document */
+
+.form-group{
+	margin-right:35px;
+}
+
+.grid-container{
+	display:grid;
+	grid-template-columns: auto auto auto auto;
+	justify-content: center;
+	gap: 10px;
+}
+
+.flex-container{
+	display:flex;
+	width: auto;
+	justify-content: center;
+}
+.flex-column{
+	flex-direction: column;
+}
+
+.flex-row{
+	flex-direction: row;
+}
+
+.sn-prefix{
+	padding: 0.5rem 0.5rem;
+	border: 1px solid #B0B0B0;
+	background-color:#E9E9E9;
+	color: #6C6C6C;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	max-width:4rem;
+	height: 34px;
+}
+
+
+.border-fix{
+	border-top-left-radius:0px !important;
+	border-bottom-left-radius: 0px !important;
+}
