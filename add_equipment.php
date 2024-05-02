@@ -1,4 +1,4 @@
-<?php
+validResponse<?php
 
 //	handle validation and sanitation here...
 	validActive($logger, $active, $endPoint, $time_start);
@@ -63,7 +63,6 @@
 			$sql = 'Insert into `relation` (sn_id, device_id, company_id, active) VALUES (?, ?, ?, ?)';
 				
 			try{
-				echo $active;
 				$res = bindAndExecute($db, $sql, "iiii", [$sn_id, $d, $c, $active]);
 				
 				if($res->affected_rows == 1){

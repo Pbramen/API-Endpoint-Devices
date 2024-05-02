@@ -10,6 +10,40 @@
 	//d queries by id
 	if(is_numeric($d) && ($name == 'device' || $name == 'company')){
 		//validates and sanitizes $d. Exits if invalid.
+		
+		if($d == 0){
+			if($active){
+				$active = "Where active = 1";;
+			}
+			$sql = 'Select * from '.$name .' '. $active;
+			
+			try{
+				$res = $db->query($sql);
+				$payload = array();
+				while($row = $res->fetch_array(MYSQLI_ASSOC)){
+					array_push($payload, ['id' => $row[$name.'_id'], 'value' => $row[$name], 'active' => $row['active'] ] );
+				}
+				if($payload){
+					handle_logger("log_API_op", $logger, $endPoint, '200', "$name($d) queried.", $time_start );
+					handleAPIResponse(200, 'Success', buildPayload($payload), $endPoint, $time_start);
+					exit();
+				}
+				else{
+					handleAPIResponse(200, "DNE", '', 'api/modify_equipment', $time_start);
+					handle_logger('log_API_error', $logger, 200, 'No results found', $endPoint, $endPoint, $time_start);
+					exit();	
+				}
+			} catch (Mysqli_sql_exception $mse){
+				handle_logger("DB_ERROR", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE:'.$mse->getCode(), 'None taken.', $time_start );
+				handleAPIResponse(500, 'Unable to query database.', '', $endPoint, $time_start);
+				exit();
+			} catch (Exception $e){
+				handle_logger("DB_ERROR", $logger, $e->getMessage(), $endPoint, $e->getTraceAsString(), 'E:'. $e->getCode(), 'None taken.', $time_start );
+				handleAPIResponse(500, 'Unable to query database.', '', $endPoint, $time_start);
+				exit();
+			}
+			
+		}
 		validateAPI($logger, $d, $name, $endPoint, $endPoint, $time_start);
 		$sql = 'SELECT * from '.$name.' where '.$name.'_id = (?) '. $active;
 		queryBy($db, $logger, $sql, "i", $d, $time_start, $endPoint, $name);;
