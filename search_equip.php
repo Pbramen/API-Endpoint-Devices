@@ -63,17 +63,19 @@
 		$res = bindAndExecute($db, $sql, $params['bind'], $params['values']);
 		$r = $res->get_result();
 		$payload = array();
+		$n = 0;
 		while($row = $r->fetch_assoc()){
-			
+			$n+=1;
 			array_push($payload, ['sn' => ['value' => $row['sn'], 'Action' => 'api/query_sn?sn='.$row['sn']], 
 								  'device' => ['id' =>$row['device_id'], 'Action' => 'api/query_device?d='.$row['device_id']], 
 								  'company' => ['id' => $row['company_id'], 'Action' => 'api/query_company?c='.$row['company_id']], 
 								  'r_id' => $row['r_id'], 'active' => $row['active']]
 					  );
 		}
+		
 		//TODO: LOG OPERATIONS AND ERRORS
 		if($payload){
-			handleAPIResponse(200, "Success", buildPayload($payload), 'api/search_equip', $time_start);
+			handleAPIResponse(200, "Success", buildPayload($payload, $n), 'api/search_equip', $time_start);
 			exit();
 		} 
 		else{
