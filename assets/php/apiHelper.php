@@ -2,12 +2,15 @@
 
 // Builds a payload array
 // $args is an assoc array containing fields and (santitized) values.s
-function buildPayload($args){
+function buildPayload($args, $n=false){
 	$payload = [
 		'Fields' => array()
 	];
 	foreach($args as $key => $value){
 		$payload['Fields'][$key] = $value;
+	}
+	if($n !== false){
+		$payload['Fields']['total'] = $n;
 	}
 	return $payload;
 }
