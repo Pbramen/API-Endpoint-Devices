@@ -17,7 +17,7 @@
 		   <div class="row">
 		<div class="col-md-4 col-sm-4">
 			<div class="feature-thumb">
-				<h3>Apdatedd Equipment</h3>
+				<h3>Update Equipment</h3>
 				<p>Click here to add new equipment.</p>
 				<a href="./updateEquip.php" class="btn btn-default smoothScroll">Discover more</a>
 			 </div>
