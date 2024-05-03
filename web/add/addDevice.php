@@ -7,9 +7,12 @@
      <?php
 		include("../../assets/php/components/templateCSS.php");
 		include("../../assets/php/components/nav.php");
+		include("../../assets/php/helperFunctions.php");
+		
 	?>
 	<!-- lOGO TEXT HERE -->
 	<a href="#" class="navbar-brand">Add New Device</a>
+	
 	
  <!-- HOME -->
  <section id="feature">
@@ -17,12 +20,23 @@
 		<div class="row">
 			
 			<?php
-			
+			$baseURL = "https://qta422.eastus.cloudapp.azure.com/web/add/addDevice.php";
+			include('../../assets/php/curlHandler.php');
+	
 				if(isset($_GET['msg'])){
 					$msg = $_GET['msg'];
 					switch($msg){
 						case 'success':
 							echo '<div class="alert alert-success" role="alert">Device Added!</div>';
+							break;
+						case 'sys':
+							echo '<div class="alert alert-danger" role="alert">System Error. Please try again later</div>';
+							break;
+						case 'missD':
+							echo '<div class="alert alert-warning" role="alert">Device missing</div>';
+							break;
+						case 'encd':
+							echo '<div class="alert alert-warning" role="alert">Invalid encoding</div>';
 							break;
 						case 'InvalidLen':
 							echo '<div class="alert alert-danger" role="alert">Device must be <= 32 length.</div>';
@@ -41,8 +55,60 @@
 				}
 			?>
 			
-			
-			<form method="post" action="">
+
+	<?php
+		if(isset($_POST["device"]) && isset($_POST["submit"])){
+			$d = $_POST['device'];
+			if(checkAlpha($d, $d)){
+				header('Location:'.$baseURL.'?msg=InvalidFormat');
+				exit();
+			}
+			if(strlen($d) > 32){
+				header('Location:'.$baseURL.'?msg=InvalidFormat');
+				exit();
+			}
+			$payload['d'] = $d;
+			$payload = json_encode($payload);
+			$res = curl_POST("add_device", $payload);
+			if(isset($res['Status']) && isset($res['MSG'])){
+				$msg = $res['MSG'];
+				switch($msg){
+					case "Success":
+						header("Location: https://qta422.eastus.cloudapp.azure.com?msg=add200");
+						exit();
+					case "device already exists.":
+						header('Location:'.$baseURL.'?msg=DeviceExist');
+						break;
+					case "DNE":
+					case "OTHER_ERROR":
+						header('Location:'.$baseURL.'?msg=sys');
+						break;
+	
+					case "Missing device":
+						header('Location:'.$baseURL.'?msg=missD');
+						break;
+					case "Invalid character encoding.":
+						header('Location:'.$baseURL.'?msg=encd');
+						break;
+					case "Max length exceeded":
+						header('Location:'.$baseURL.'?msg=InvalidLen');
+						break;
+					case "device name should only have alpha characters.";
+						header('Location:'.$baseURL.'?msg=InvalidFormat');
+						break;
+
+					default:
+						echo $msg;
+						break;
+					
+				}
+			}
+		}
+	
+	?>
+	
+				
+	<form method="post" action="">
 				<div class="form-group">
 					<label for="device">Device:</label>
 					<input type="text" name="device" maxlength="32">
@@ -52,61 +118,6 @@
 		</div>
 	</div>
 </section>
-
-	<?php
-		if(isset($_POST["device"]) && isset($_POST["submit"])){
-			// $d = $_POST["device"];
-			// $n = mb_strlen($d, 'UTF-8');
-			// $d = sanitizeDriver($logger, $d, "device", "device");
-			
-			// if($n >= 32){
-			// 	$logger->insertSysErr("Device length exceeded: $n", "addDevice.php");
-			// 	header("Location: $baseURL?msg=InvalidLen");
-			// 	exit();
-			// }
-			// if(checkAlpha($d, $res)){
-			// 	$logger->insertSysErr("Attempted to add device with invalid character $res", "addDevice.php");
-			// 	header("Location: $baseURL?msg=InvalidFormat");
-			// 	exit();
-			// }
-			// // check if unique
-			// $sql = "Select device_id from device where device = (?)";
-			// try{
-			// 	$p = [$d];
-			// 	$res = bindAndExecute($db, $sql, "s", $p);	
-			// 	$res->store_result();
-			// 	$res->fetch();
-				
-			// 	// if not -> send warning
-			// 	if($res->num_rows == 1){
-			// 		$logger->insertSysErr("Attempted to add an existing device $d", "addDevice.php");
-			// 		header("Location: $baseURL?msg=DeviceExist");
-			// 		exit();
-			// 	}
-			// 	$res->close();
-				
-			// 	// insert new device
-			// 	$sql= "INSERT into device (device) VALUES (?)";
-			// 	$res = bindAndExecute($db, $sql, "s", $p);
-			// 	$res->close();
-				
-			// 	//insert operation here
-			// 	logOperation($logger, 'addDevice.php', "Added device $d", 'post');
-			// 	header("Location: $baseURL?msg=success");
-			// 	exit();
-			// } catch (Mysqli_Sql_exception $mse){
-			// 	$logger->insertSysErr($mse, "addDevice.php");
-			// 	header("Location: $baseURL?msg=DBERR");
-			// 	exit();
-			// } catch (Exception $e){
-			// 	$logger->insertSysErr($e, "addDevice.php");
-			// 	header("Location: $baseURL?msg=DBERR");
-			// 	exit();
-			// }
-		}
-	
-	?>
-	
 	</body>
 </html>
 

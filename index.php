@@ -31,6 +31,9 @@
 							case 'update200':
 								echo '<div class="alert alert-success" role="alert">Equipment updated successfully!!</div>';
 								break;
+                                   case 'add200':
+                                        echo '<div class="alert alert-success" role="alert">Equipment updated successfully!!</div>';
+                                        break;
 						}
 				   }
                     ?>
