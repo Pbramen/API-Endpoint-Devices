@@ -1,5 +1,5 @@
 <!-- Separte form file to keep things more readible  -->
-<form method="post" action="">
+<?php echo '<form method="post" action="'.$baseURL.'">'; ?>
 			<div class="form-group">
 				<label for="device">Device:</label>
 				<select class="form-control" name="device" id="device">

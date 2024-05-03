@@ -1,7 +1,11 @@
 <!-- Genrates a search form  -->
 
 <?php
-
+	$d_selected = -1;
+	$c_selected = -1;
+	if($baseURL == null){
+		$baseURL ="";
+	}
 	if(isset($_GET['device']) && isset($device[$_GET['device']])){
 		$d_selected = $_GET['device'];
 	}
@@ -16,7 +20,7 @@
 	else 
 		$sn_selected = "";
 ?>
-<form method="get" action="" >
+<?php echo'<form method="get" action="'.$baseURL.'" >'; ?>
 		<div class="form-inline flex-container">			
 			<div class="form-group" >
 				<label for="device">Device:</label>
@@ -48,7 +52,7 @@
 				<div class="input-group">
 					<div class="input-group-addon">SN-</div>
 					<?php
-						echo '<input class="form-control border-fix" type="text" maxlength="81" id="serialInput" name="sn">'.$sn_selected.'</input>'
+						echo '<input class="form-control border-fix" type="text" maxlength="81" id="serialInput" name="sn" placeholder='.$sn_selected.'>';
 					?>
 				</div>
 			</div>
@@ -67,7 +71,4 @@
 			
 			
 		</form>
-
-	   </div>
-  </div>
-</section>
+ 
