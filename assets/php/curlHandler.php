@@ -25,15 +25,15 @@ function curl_POST($url, $data){
 	curl_setopt($ch, CURLOPT_POST, 1); // post
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $data); // fill data
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // response
-	curl_setopt($ch, CURLOPT_HTTPHEADER, array('content-type: application/x-www-form-urlencoded', 'content-length: '.strlen($data))); // content type and length of data sent by requester
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array('content-type: application/json')); // content type and length of data sent by requester
 
 	$result = curl_exec($ch);
-	// if($result == false){
-	// 	handle_logger('log_API_error', $logger, curl_errno($ch), curl_error($ch), 'None Taken', $endPoint, $time_start);
-	// 	echo 'Curl error ('.curl_errno($ch).'): '.curl_error($ch);
-	// 	exit();
-	// }
+	if($result == false){
+		echo 'Curl error ('.curl_errno($ch).'): '.curl_error($ch);
+		exit();
+	}
 	curl_close($ch);
+	$result = json_decode($result, true);
 	return $result;
 }
 
@@ -47,12 +47,12 @@ function curl_PUT($url, $data){
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('content-type: application/json')); // content type and length of data sent by requester
 
 	$result = curl_exec($ch);
-	// if($result == false){
-	// 	handle_logger('log_API_error', $logger, curl_errno($ch), curl_error($ch), 'None Taken', $endPoint, $time_start);
-	// 	echo 'Curl error ('.curl_errno($ch).'): '.curl_error($ch);
-	// 	exit();
-	// }
+	if($result == false){
+		echo 'Curl error ('.curl_errno($ch).'): '.curl_error($ch);
+		exit();
+	}
 	curl_close($ch);
+	$result = json_decode($result, true);
 	return $result;
 }
 ?>
