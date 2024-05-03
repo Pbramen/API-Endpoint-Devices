@@ -34,7 +34,7 @@
 			 <div class="feature-thumb">
 				  <h3>Update Company</h3>
 				  <p>Click here to new an manufacturer</p>
-				 <a href="./updateAttrib.php?company=true" class="btn btn-default smoothScroll">Discover more</a>
+				 <a href="./updateCompany.php" class="btn btn-default smoothScroll">Discover more</a>
 			 </div>
 			</div>
 		</div>
