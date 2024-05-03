@@ -32,8 +32,8 @@ function handle_json_encode($url, $endPoint, $start){
 function handle_decode($json, $logger, $name, $endPoint, $action, $time_start, $opt = true){
 	$json = json_decode($json, $opt);
 	if($json == null){
-		handle_logger("log_API_error", $logger, 200, 'Invalid '.$name.'_id data type.', $endPoint, $action, $time_start);
-		handleAPIResponse(200, "$name must be digits only.", buildPayload([ $name[0] => $d]), $endPoint, $time_start);
+		handle_logger("log_API_error", $logger, 200, json_last_error() .' '. json_last_error_msg(), $endPoint, $action, $time_start);
+		handleAPIResponse(200, "JSON_ERROR", '', $endPoint, $time_start);
 		exit();
 	}
 	return $json;

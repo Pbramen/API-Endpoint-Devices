@@ -1,4 +1,4 @@
-validResponse<?php
+<?php
 
 //	handle validation and sanitation here...
 	validActive($logger, $active, $endPoint, $time_start);

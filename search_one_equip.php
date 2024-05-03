@@ -4,7 +4,7 @@
 	
 	validActive($logger, $active, $endPoint, $time_start);
 
-	$is_active;
+	$is_active = '';
 	// record is only active if all elements have status of 1. 
 	if($active == 1){
 		$is_active = "AND sn.active = 1 AND d.active = 1 AND c.active = 1 AND r.active = 1";

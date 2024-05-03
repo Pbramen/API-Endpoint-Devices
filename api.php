@@ -59,6 +59,7 @@
 			$d = getField('d');
 			$c = getField('c');
 			$sn = getField('sn');
+			$newSN = getField('newSN');
 			$active = getField('active');
 			include("modify_equipment.php");
 			break;
