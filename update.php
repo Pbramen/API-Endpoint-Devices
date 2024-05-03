@@ -9,7 +9,7 @@
 	
 	if($active != 0 && $active != 1){
 		// invalid active.
-		handleAPIResponse(200, "Invalid active param. Must be 0 or 1.", "", 'api/query_'.$name, $time_start);
+		handleAPIResponse(200, "Invalid active param.", "", 'api/query_'.$name, $time_start);
 		handle_logger('log_API_error', $logger, 200, 'Invalid active param type.', 'api/query_'.$name, $endPoint, $time_start);
 		exit();
 	}

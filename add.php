@@ -13,7 +13,7 @@
 
 		if($row){
 			handle_logger('log_API_error', $logger, 200, $name.' '.$d_sanitized.' exists already.', 'api/query_'.$name, $endPoint, $time_start);
-			handleAPIResponse(200, 'Device already exists.', buildPayload([$short=>$d_sanitized, 'id'=> $row[$name.'_id']]), $endPoint, $time_start, "api/query_$name");
+			handleAPIResponse(200, $name.' already exists.', buildPayload([$short=>$d_sanitized, 'id'=> $row[$name.'_id']]), $endPoint, $time_start, "api/query_$name");
 			exit();
 		}
 		$res->close();
