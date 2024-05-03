@@ -2,7 +2,7 @@
     include("/var/www/html/assets/php/curlHandler.php");
     function loadAttribute($atrb, &$fields, $active = 1 ){
         $url = 'query_'.$atrb.'/';
-        $data = '?'.$atrb[0].'=0&active='.$active;
+        $data = '?'.$atrb[0].'=0&active=0';
         $results = curl_GET($url, $data);
         if(validResponse($results, "Success")){
             foreach($results['Payload']['Fields'] as $obj){
