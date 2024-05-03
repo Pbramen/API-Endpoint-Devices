@@ -102,8 +102,8 @@
 
 	/** Attempts to insert new relation from web endpoint. 
 	*   	params $dblink (mysqli object) Current connection
-			params $device (string) id of device
-			params $company (string) id of serial number
+	*		params $device (string) id of device
+	*		params $company (string) id of serial number
 	*		params $sn (string) serial number to check 
 	*			throws error upon failure.
 	* 			returns last inserted ID for sn. 
