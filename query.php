@@ -80,7 +80,7 @@
 			$res = bindAndExecute($db, $sql, $bind, [$d]);
 		} catch (Mysqli_SQL_Exception $mse){
 			handle_logger("DB_ERROR", $logger, $mse->getMessage(), $endPoint, $mse->getTraceAsString(), 'MSE:'.$mse->getCode(), 'None taken.', $time_start );
-			handleAPIResponse(500, 'Unable to query database.', '', $endPoint, $time_start);
+			handleAPIResponse(500, 'DB_ERROR', '', $endPoint, $time_start);
 			exit();
 		} catch (Exception $e) {
 			// log error here
