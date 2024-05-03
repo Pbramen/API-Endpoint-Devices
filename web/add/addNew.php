@@ -23,71 +23,149 @@
 	
 <?php
 	// MENU
+	include("../../assets/php/helperFunctions.php");
 	include('../../assets/php/components/nav.php');
-	include("../../assets/php/components/formComponent.php");
-	if (isset($_REQUEST['msg']) && $_REQUEST['msg']=="InvalidInput")
-	{
-	// 	echo '<div class="alert alert-danger" role="alert">Invalid serial number. Please only use characters a-f or digits.</div>';
 
-	// }
-	// if (isset($_REQUEST['msg']) && $_REQUEST['msg']=='MaxLength'){
-	// 	echo '<div class="alert alert-danger" role="alert">Maximun length of sn is 84.</div>';
-	// }
-	// if (isset($_REQUEST['msg']) && $_REQUEST['msg']=='DeviceExists'){
-	// 	echo '<div class="alert alert-warning" role="alert">Device is already in the database.</div>';
-	// }
 
-	 include("../../assets/php/components/formComponent.php");
+	include('../../assets/php/loader/loadAttributes.php');
 
-	// 	if(isset($_POST["serialnumber"])){
-	// 		$sn = trim($_POST["serialnumber"]);
-	// 		$sn = "SN-".$sn;
-	// 		$err = checkSNString($sn);
-			
-	// 		if($err >= 2){
-	// 			// not hexadecimal format
-	// 			$logger->insertSysErr("Invalid input for sn: $sn", "addNew");
-	// 			header("Location: https://ec2-18-117-229-80.us-east-2.compute.amazonaws.com/form/web/add/addNew.php?msg=InvalidInput");
-	// 			exit();
-	// 		}
-			
-	// 		if($err <= 1 && !checkSNLen($sn)){
-	// 			// invalid length -> warning
-	// 			$logger->insertSysErr('Max length for sn input reached: '.strlen($sn), "addNew");
-	// 			header("Location: https://ec2-18-117-229-80.us-east-2.compute.amazonaws.com/form/web/addNew.php?msg=MaxLength");
-	// 			exit();
-	// 		}
-	// 		else if($err <= 1) {
-	// 			// check if unquie sn!
-	// 			try{
-	// 				if( checkUnquie($db, $sn) ){
-	// 					// insert into database here
-	// 					$device = $_POST['device'];
-	// 					$company = $_POST['company'];
-						
-	// 					$sn_id = insertSN($db, $sn);
-					
-	// 					insertRelation($db, $device, $company, $sn_id);
-						
-	// 					header("Location: https://ec2-18-117-229-80.us-east-2.compute.amazonaws.com/form/web/index.php?msg=EquipmentAdded" );
-	// 					exit();
-	// 				}
-	// 				else{
-	// 					//echo "error: sn already exists";
-	// 					// log user error here
-	// 					$logger->insertSysErr("$sn already exists.", "addNew");
-	// 					header("Location: https://ec2-18-117-229-80.us-east-2.compute.amazonaws.com/form/web/add/addNew.php?msg=DeviceExists");
-	// 					exit();
-	// 				}
-	// 			} catch(Exception $e){
-	// 				//Log to database here.
-	// 				$logger->insertSysErr($e.message, "addNew");
-	// 				header("Location: https://ec2-18-117-229-80.us-east-2.compute.amazonaws.com/form/web/404?msg=SystemFailure");
-	// 				exit();
-	// 			}
-				
-	// 		}
+	$device = [];
+	$commpany = [];
+	loadAttribute('device', $device, 1);
+	loadAttribute('company', $company, 1);
+	include("../../assets/php/loader/directory.php");
+	$baseURL .= 'add/addNew.php';
+	
+	if(!$_REQUEST){
+		include("../../assets/php/components/formComponent.php");
+	}
+	else if(isset($_REQUEST['msg'])){
+
+	
+
+		$msg = $_REQUEST['msg'];
+		switch($msg){
+			case 'InvalidInput':
+				echo '<div class="alert alert-danger" role="alert">Invalid serial number. Please only use characters a-f or digits.</div>';
+				break;
+			case 'InvalidSNLength':
+				echo '<div class="alert alert-danger" role="alert">Maximun length of sn is 84.</div>';
+				break;
+			case 'InvalidSNData':
+				echo '<div class="alert alert-danger" role="alert">SN must be a string.</div>';
+				break;
+			case 'InvalidSNFormat':
+				echo '<div class="alert alert-danger" role="alert">SN must be valid hexcode only.</div>';
+				break;
+			case 'DM':
+			case 'deviceM':
+				echo '<div class="alert alert-danger" role="alert">Device missing.</div>';
+				break;
+			case 'CM':
+			case 'companyM':
+				echo '<div class="alert alert-danger" role="alert">Compoany missing</div>';
+				break;
+			case 'SNM':
+				echo '<div class="alert alert-danger" role="alert">Serial Number Missing</div>';
+				break;
+			case 'sys':
+				echo '<div class="alert alert-danger" role="alert">Internal System Error. Please try again later</div>';
+				break;
+			case 'E':
+				echo '<div class="alert alert-danger" role="alert">Equipment already exists.</div>';
+				break;
+			default;
+				break;
 		}
+		include("../../assets/php/components/formComponent.php");
+	}
+
+	else if(!isset($_GET['$msg']) && isset($_POST['submit']) && isset($_POST['serialnumber']) && isset($_POST['device']) && isset($_POST['company'])){
+		//sanitize all params here 
+		$d = $_POST['device'];
+		$payload = [];
+		if(!isset($device[$d])){
+			header("Location: $baseURL?&msg=InvalidDevice");	
+			exit();
+		}
+		$payload['d'] = $d;
+
+		$c = $_POST['company'];
+			if(!isset($company[$c])){
+				header("Location: $baseURL?&msg=InvalidCompany");
+				exit();
+			}
+		$payload['c'] = $c;
+		
+		$sn = $_POST['serialnumber'];
+		if( $sn != ''){
+			$sn = "SN-".$sn;
+				
+			if(!checkSNLen($sn)){
+				header("Location: $baseURL?&page=0&msg=InvalidSNLength");
+				exit();
+			}
+			if(!checkDataType($sn, "string", "sn" )){
+				header("Location: $baseURL?&page=0&msg=InvalidSNData");
+				exit();
+			}
+			$err = checkSNString($sn);
+			if($err >= 2){
+				header("Location: $baseURL?&page=0&msg=InvalidSNFormat");
+				exit();
+			}
+		}	
+		$payload['sn'] = $sn;
+
+		$payload = json_encode($payload);
+		// curl 
+		$res = curl_POST("add_equipment", $payload);
+		// on success -> header back home
+		if(isset($res['MSG']) && $res['MSG'] == 'Success'){
+
+			header('Location: https://qta422.eastus.cloudapp.azure.com?msg=add200');
+			exit();
+		}
+		else if(isset($res['MSG'])){
+			
+			$msg = $res['MSG'];
+			switch($msg){
+				case 'Missing param: device':
+					echo "missing device";
+					header("Location: $baseURL?&msg=DM");
+					break;
+				case 'Missing param: company':
+					header("Location: $baseURL?&msg=CM");
+					break;
+				case 'Missing param: sn':
+					header("Location: $baseURL?&msg=SNM");
+					break;
+				case 'DB_ERROR':
+				case 'OTHER_ERROR':
+				case 'Invalid JSON format.':
+					header("Location: $baseURL?&msg=sys");
+					break;
+				case 'DNE':
+					if(isset($res['Payload'])){
+						$parm = $res['Payload'];
+						if($parm == 'device' || $parm == 'company'){
+							header('Location: '.$baseURL.'?&msg='.$parm.'M');
+						}
+					}
+					break;
+				case 'Record already exists':
+					header('Location: '.$baseURL.'?&msg=E');
+					break;
+				default:
+					echo $msg;
+					//header('Location: '.$baseURL.'?&msg=uER');
+					break;
+			}
+		}
+		
+		// on fail -> header back here with msg.
+		// MSG = "Record already exists"
+	}
 	?>
 </body>
 </html>
